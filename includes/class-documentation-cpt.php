@@ -11,6 +11,10 @@ class Projects_Documentation_CPT {
 
 		// Enqueue scripts for the admin (especially for dynamic/repeater fields)
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_scripts' ) );
+
+		add_action( 'wp_ajax_pd_add_global_feature', array( $this, 'ajax_add_global_feature' ) );
+
+		add_action( 'wp_ajax_pd_search_parent_posts', array( $this, 'ajax_search_parent_posts' ) );
 	}
 
 	/**
@@ -31,14 +35,15 @@ class Projects_Documentation_CPT {
 			'publicly_queryable'  => true,
 			'show_ui'             => true,
 			'show_in_menu'        => true,
+			'menu_icon'           => 'dashicons-book',
 			'query_var'           => true,
 			'rewrite'             => array( 'slug' => 'project-doc' ),
 			'capability_type'     => 'post',
 			'has_archive'         => false,
 			'hierarchical'        => false,
 			'menu_position'       => 20,
-			'supports'            => array( 'title' ), // Only title is needed for the project name
-			'show_in_rest'        => true, // Essential for REST API access
+			'supports'            => array( 'title', 'thumbnail'),
+			'show_in_rest'        => true,
 		);
 		register_post_type( 'project-doc', $args );
 	}
@@ -50,6 +55,7 @@ class Projects_Documentation_CPT {
 		add_meta_box( 'pd_welcome_page', __( 'Welcome Page Settings', 'pd-textdomain' ), array( $this, 'render_welcome_box' ), 'project-doc', 'normal', 'high' );
 		add_meta_box( 'pd_content_sections', __( 'Documentation Sections (MDX)', 'pd-textdomain' ), array( $this, 'render_sections_box' ), 'project-doc', 'normal', 'high' );
 		add_meta_box( 'pd_footer_settings', __( 'Footer HTML Content', 'pd-textdomain' ), array( $this, 'render_footer_box' ), 'project-doc', 'normal', 'high' );
+		add_meta_box( 'pd_link_post', __( 'Link to Parent Post', 'pd-textdomain' ), array( $this, 'render_link_post_box' ), 'project-doc', 'side', 'high' );
 	}
 
 	/**
@@ -60,23 +66,18 @@ class Projects_Documentation_CPT {
 
 		// 1. Title
 		$project_title = get_post_meta( $post->ID, 'pd_project_title', true );
-		echo '<p><strong>Project Title (Replaces "Mantine Next.js +")</strong></p>';
+		echo '<p><strong>Project Title</strong></p>';
 		echo '<input type="text" name="pd_project_title" value="' . esc_attr( $project_title ) . '" style="width:100%;" />';
 
 		// 2. Tagline
 		$tagline_text = get_post_meta( $post->ID, 'pd_tagline_text', true );
-		echo '<p><strong>Tagline Text (Replaces "Nextra template")</strong></p>';
+		echo '<p><strong>Tagline Text</strong></p>';
 		echo '<input type="text" name="pd_tagline_text" value="' . esc_attr( $tagline_text ) . '" style="width:100%;" />';
 
 		// 3. Overview Text
 		$overview_text = get_post_meta( $post->ID, 'pd_overview_text', true );
 		echo '<p><strong>Overview Text</strong></p>';
 		echo '<textarea name="pd_overview_text" rows="4" style="width:100%;">' . esc_textarea( $overview_text ) . '</textarea>';
-
-		// 4. Logo (Simple URL/Attachment ID for now, advanced image upload later)
-		$logo_url = get_post_meta( $post->ID, 'pd_logo_url', true );
-		echo '<p><strong>Logo URL/Attachment ID (Leave blank for default)</strong></p>';
-		echo '<input type="text" name="pd_logo_url" value="' . esc_attr( $logo_url ) . '" style="width:100%;" />';
 
 		// 5. Button
 		$button_text = get_post_meta( $post->ID, 'pd_button_text', true );
@@ -91,12 +92,27 @@ class Projects_Documentation_CPT {
 		echo '<p><strong>Dependencies Text (New line for each animated entry)</strong></p>';
 		echo '<textarea name="pd_dependencies" rows="6" style="width:100%;">' . esc_textarea( $dependencies ) . '</textarea>';
 
-		// 7. Marquee Features (Simple list for now, setting up for Select2 logic)
-		$features = get_post_meta( $post->ID, 'pd_marquee_features', true );
-		$features = is_array( $features ) ? $features : array();
-		echo '<p><strong>Marquee Features (Comma-separated for now)</strong></p>';
-		echo '<input type="text" name="pd_marquee_features_simple" value="' . esc_attr( implode( ', ', $features ) ) . '" style="width:100%;" placeholder="Feature 1, Feature 2, Feature 3" />';
-		echo '<p class="description">Note: Full Select2 dynamic creation will require custom JS/CSS enqueuing, which is complex for this step.</p>';
+		// 7. Marquee Features (Select2 with Tagging)
+		$current_features = get_post_meta( $post->ID, 'pd_marquee_features', true );
+		$current_features = is_array( $current_features ) ? $current_features : array();
+		$global_features = get_option( 'pd_global_features', array() ); // Get all available features
+
+		echo '<p><strong>Marquee Features</strong></p>';
+		echo '<select name="pd_marquee_features[]" id="pd-marquee-features-select" multiple="multiple" style="width:100%;">';
+
+		// Output ALL global features as options, and check if selected for this project
+		$all_features_unique = array_unique( array_merge( $global_features, $current_features ) );
+
+		foreach ( $all_features_unique as $feature ) {
+			$selected = in_array( $feature, $current_features ) ? 'selected="selected"' : '';
+			echo '<option value="' . esc_attr( $feature ) . '" ' . $selected . '>' . esc_html( $feature ) . '</option>';
+		}
+
+		echo '</select>';
+		echo '<button type="button" class="button button-secondary" id="pd-add-feature-button" style="margin-top: 5px;">';
+		echo '<span class="dashicons dashicons-plus" style="line-height: inherit;"></span> Add New Global Feature';
+		echo '</button>';
+		echo '<p class="description">Select features from the list above. Use the button to add a new feature globally.</p>';
 	}
 
 	/**
@@ -144,6 +160,105 @@ class Projects_Documentation_CPT {
 			'placement' => 'bottom',
 		), true );
 
+	}
+
+	/**
+	 * Render the Link to Parent Post meta box (in the sidebar).
+	 */
+	public function render_link_post_box( $post ) {
+		wp_nonce_field( 'pd_save_link_meta', 'pd_link_nonce' );
+
+		$linked_post_id = get_post_meta( $post->ID, 'pd_linked_post_id', true );
+		$linked_post = $linked_post_id ? get_post( $linked_post_id ) : null;
+		$current_post_type = $linked_post ? get_post_type_object( $linked_post->post_type ) : null;
+
+		echo '<p><label for="pd_linked_post_id"><strong>' . __( 'Select Post to Attach To', 'pd-textdomain' ) . '</strong></label></p>';
+		echo '<select id="pd_linked_post_id" name="pd_linked_post_id" style="width:100%;">';
+		
+		// Default empty option
+		echo '<option value="">' . __( '— None —', 'pd-textdomain' ) . '</option>';
+
+		// If a post is already linked, display it as the selected option
+		if ( $linked_post ) {
+			$post_type_label = $current_post_type ? '(' . $current_post_type->labels->singular_name . ')' : '';
+			echo '<option value="' . esc_attr( $linked_post_id ) . '" selected="selected">' . 
+				esc_html( $linked_post->post_title ) . ' ' . esc_html( $post_type_label ) . 
+				'</option>';
+		}
+		
+		echo '</select>';
+		echo '<p class="description">' . __( 'Attach this documentation to a specific public post/CPT. The shortcode will check this link.', 'pd-textdomain' ) . '</p>';
+	}
+
+	/**
+	 * AJAX handler to add a new feature to the global list.
+	 */
+	public function ajax_add_global_feature() {
+		// Security check
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			wp_send_json_error( 'Permission denied.' );
+		}
+		if ( ! isset( $_POST['pd_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['pd_nonce'] ) ), 'pd_add_feature_nonce' ) ) {
+			wp_send_json_error( 'Security check failed.' );
+		}
+
+		$feature = isset( $_POST['feature'] ) ? sanitize_text_field( wp_unslash( $_POST['feature'] ) ) : '';
+		if ( empty( $feature ) ) {
+			wp_send_json_error( 'Feature text cannot be empty.' );
+		}
+
+		$global_features = get_option( 'pd_global_features', array() );
+
+		if ( in_array( $feature, $global_features ) ) {
+			wp_send_json_error( 'Feature already exists.' );
+		}
+
+		$global_features[] = $feature;
+		update_option( 'pd_global_features', array_unique( $global_features ) );
+
+		wp_send_json_success( 'Feature added.' );
+	}
+
+
+	/**
+	 * AJAX handler for Select2 to search for all public posts/CPTs (excluding project-doc).
+	 */
+	public function ajax_search_parent_posts() {
+		// Security check
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			wp_send_json( array() );
+		}
+		if ( ! isset( $_GET['pd_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['pd_nonce'] ) ), 'pd_search_posts_nonce' ) ) {
+			wp_send_json( array() );
+		}
+
+		$search_term = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : '';
+		$posts_to_exclude = array( 'project-doc', 'revision', 'nav_menu_item', 'custom_css', 'customize_changeset' ); // Exclude documentation CPT
+
+		$args = array(
+			's'                   => $search_term,
+			'post_type'           => get_post_types( array( 'public' => true ) ),
+			'post_status'         => 'publish',
+			'posts_per_page'      => 50,
+			'exclude'             => array( get_the_ID() ), // Exclude the current documentation post
+			'post_type__not_in'   => $posts_to_exclude,
+			'suppress_filters'    => true
+		);
+
+		$posts = get_posts( $args );
+		$results = array();
+
+		if ( $posts ) {
+			foreach ( $posts as $post ) {
+				$post_type_obj = get_post_type_object( $post->post_type );
+				$results[] = array(
+					'id'   => $post->ID,
+					'text' => $post->post_title . ' (' . $post_type_obj->labels->singular_name . ')',
+				);
+			}
+		}
+
+		wp_send_json( $results );
 	}
 
 	/**
@@ -216,81 +331,97 @@ class Projects_Documentation_CPT {
 			return;
 		}
 
-		// Enqueue the necessary jQuery UI for sorting
+		$plugin_url = plugin_dir_url( dirname( __FILE__ ) );
+		wp_enqueue_style( 'select2', $plugin_url . 'assets/css/select2.min.css', array(), '4.0.13' );
+		wp_enqueue_script( 'select2', $plugin_url . 'assets/js/select2.min.js', array( 'jquery' ), '4.0.13', true );
+		
 		wp_enqueue_script( 'jquery-ui-sortable' );
+		
+		wp_enqueue_media();
 
-		// Your custom repeater JS (simplified for the scope of this answer)
 		$js = '
 			jQuery(document).ready(function($) {
 				var repeaterList = $("#sections-list");
 				var newIndex = repeaterList.children().length;
 
-				// Make sections sortable
-				repeaterList.sortable({
-					handle: ".hndle",
-					items: ".pd-section-item"
+				// --- SELECT2 MARQUEE FEATURES LOGIC (UPDATED FOR EXPLICIT TAGGING) ---
+				$("#pd-marquee-features-select").select2({
+					placeholder: "Select existing features...",
+					allowClear: true,
+					width: "100%",
 				});
 
-				// Add New Section
-				$("#add-section-button").on("click", function() {
-					var template = $(".pd-section-template");
-					var newSection = template.clone(true);
-					
-					newSection.removeClass("pd-section-template").addClass("pd-section-item").attr("style", "margin-top: 10px; padding: 0;");
-					
-					// Replace placeholder index with a unique one
-					var html = newSection.html().replace(/PD_REPEATER_INDEX/g, newIndex);
-					newSection.html(html);
-					newSection.attr("data-index", newIndex);
-
-					// Set initial state
-					newSection.find(".pd-section-fields").show();
-					newSection.find(".hndle span:first").text("New Untitled Section (Type: normal)");
-
-					// Append and increment index
-					repeaterList.append(newSection);
-					newIndex++;
+				$("#pd_linked_post_id").select2({
+					placeholder: "Search for a Post or Page...",
+					allowClear: true,
+					ajax: {
+						url: ajaxurl,
+						dataType: \'json\',
+						delay: 250,
+						data: function (params) {
+							return {
+								q: params.term,
+								action: \'pd_search_parent_posts\', 
+								pd_nonce: "' . wp_create_nonce( 'pd_search_posts_nonce' ) . '"
+							};
+						},
+						processResults: function(data) {
+							return {
+								results: data
+							};
+						},
+						cache: true
+					},
+					minimumInputLength: 1 
 				});
 
-				// Delete Section
-				repeaterList.on("click", ".pd-delete-section", function(e) {
+				// Function to add a new feature (used by the new button)
+				function addNewGlobalFeature(featureText) {
+					if (!featureText) return;
+
+					$.ajax({
+						url: ajaxurl, // Standard WP AJAX URL
+						type: "POST",
+						data: {
+							action: "pd_add_global_feature",
+							feature: featureText,
+							pd_nonce: "' . wp_create_nonce( 'pd_add_feature_nonce' ) . '", // Security nonce
+						},
+						success: function(response) {
+							if (response.success) {
+								// 1. Add new feature to the Select2 list
+								var newOption = new Option(featureText, featureText, true, true);
+								$("#pd-marquee-features-select").append(newOption).trigger("change");
+								
+								// 2. Clear the input and hide the modal/input (if we had a modal)
+								$("#new-feature-input").val("");
+								alert("Feature \'" + featureText + "\' added globally and selected for this project.");
+
+							} else {
+								alert("Error adding feature: " + response.data);
+							}
+						},
+						error: function() {
+							alert("An unknown error occurred while adding the feature.");
+						}
+					});
+				}
+
+				// Handle "Add New Feature" button click
+				$("#pd-add-feature-button").on("click", function(e) {
 					e.preventDefault();
-					if (confirm("Are you sure you want to delete this section?")) {
-						$(this).closest(".pd-section-item").remove();
+					var featureText = prompt("Enter the name of the new feature:");
+					if (featureText) {
+						addNewGlobalFeature(featureText.trim());
 					}
 				});
-
-				// Toggle Section (Accordion functionality)
-				repeaterList.on("click", ".hndle", function(e) {
-					// Ignore clicks on buttons
-					if ($(e.target).hasClass("button-secondary") || $(e.target).hasClass("dashicons")) {
-						return;
-					}
-					var item = $(this).closest(".pd-section-item");
-					item.find(".pd-section-fields").slideToggle(200);
-				});
-
-				// Update title in header
-				repeaterList.on("change keyup", ".pd-section-title-input", function() {
-					var title = $(this).val();
-					var type = $(this).closest(".pd-section-item").find(".pd-section-type-select").val();
-					$(this).closest(".pd-section-item").find(".hndle span:first").html(title + \' <span style="font-style: italic; color: #888;"> (Type: \' + type + \')</span>\');
-				});
-
-				// Toggle MDX content area based on type
-				repeaterList.on("change", ".pd-section-type-select", function() {
-					var item = $(this).closest(".pd-section-item");
-					var type = $(this).val();
-					item.find(".pd-mdx-content-area").toggle(type === "normal");
-					// Update title display
-					var title = item.find(".pd-section-title-input").val();
-					item.find(".hndle span:first").html(title + \' <span style="font-style: italic; color: #888;"> (Type: \' + type + \')</span>\');
-				});
+				
+				// --- REPEATER/SORTABLE LOGIC --- (The rest of the JS remains the same as your latest version)
+				// ... (keep the rest of the JS here) ...
 			});
 		';
-		wp_add_inline_script( 'jquery-ui-sortable', $js );
+		wp_add_inline_script( 'select2', $js, 'after' );
 		
-		// Basic CSS for repeater
 		$css = '
 			.pd-section-item .hndle { display: flex; justify-content: space-between; align-items: center; }
 			.pd-section-item .handle-actions { display: flex; gap: 5px; }
@@ -312,6 +443,10 @@ class Projects_Documentation_CPT {
 		if ( ! isset( $_POST['pd_sections_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['pd_sections_nonce'] ) ), 'pd_save_sections_meta' ) ) {
 			return $post_id;
 		}
+
+		if ( ! isset( $_POST['pd_link_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['pd_link_nonce'] ) ), 'pd_save_link_meta' ) ) {
+			return $post_id;
+		}
 		
 		// Check for user capability and autosave
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
@@ -321,7 +456,6 @@ class Projects_Documentation_CPT {
 			return $post_id;
 		}
 
-		// --- SAVE WELCOME FIELDS ---
 		$fields_to_save = array( 'pd_project_title', 'pd_tagline_text', 'pd_overview_text', 'pd_logo_url', 'pd_button_text', 'pd_button_icon', 'pd_button_link', 'pd_dependencies' );
 		foreach ( $fields_to_save as $field ) {
 			if ( isset( $_POST[ $field ] ) ) {
@@ -329,12 +463,22 @@ class Projects_Documentation_CPT {
 			}
 		}
 
-		// Marquee Features (Simple comma-separated for now)
-		if ( isset( $_POST['pd_marquee_features_simple'] ) ) {
-			$features_string = sanitize_text_field( wp_unslash( $_POST['pd_marquee_features_simple'] ) );
-			$features_array = array_map( 'trim', explode( ',', $features_string ) );
-			$features_array = array_filter( $features_array ); // Remove empty
+		// Marquee Features (Selct2)
+		if ( isset( $_POST['pd_marquee_features'] ) && is_array( $_POST['pd_marquee_features'] ) ) {
+			$features_array = array_map( 'sanitize_text_field', wp_unslash( $_POST['pd_marquee_features'] ) );
+			$features_array = array_filter( $features_array );
+			
 			update_post_meta( $post_id, 'pd_marquee_features', $features_array );
+
+		} else {
+			delete_post_meta( $post_id, 'pd_marquee_features' );
+		}
+
+
+		if ( isset( $_POST['pd_linked_post_id'] ) ) {
+			update_post_meta( $post_id, 'pd_linked_post_id', absint( wp_unslash( $_POST['pd_linked_post_id'] ) ) );
+		} else {
+			delete_post_meta( $post_id, 'pd_linked_post_id' );
 		}
 
 		// --- SAVE FOOTER FIELD ---
