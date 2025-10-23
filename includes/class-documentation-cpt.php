@@ -15,6 +15,8 @@ class Projects_Documentation_CPT {
 		add_action( 'wp_ajax_pd_add_global_feature', array( $this, 'ajax_add_global_feature' ) );
 
 		add_action( 'wp_ajax_pd_search_parent_posts', array( $this, 'ajax_search_parent_posts' ) );
+
+
 	}
 
 	/**
@@ -58,6 +60,19 @@ class Projects_Documentation_CPT {
 		add_meta_box( 'pd_link_post', __( 'Link to Parent Post', 'pd-textdomain' ), array( $this, 'render_link_post_box' ), 'project-doc', 'side', 'high' );
 	}
 
+	private function get_tabler_icons_list() {
+	    $file_path = PD_PLUGIN_DIR . 'utils/tabler-icons.json';
+
+	    if ( ! file_exists( $file_path ) ) {
+	        return [];
+	    }
+
+	    $json_content = file_get_contents( $file_path );
+	    $icons = json_decode( $json_content, true );
+
+	    return is_array( $icons ) ? $icons : [];
+	}
+
 	/**
 	 * Render the Welcome Page Settings meta box.
 	 */
@@ -84,7 +99,19 @@ class Projects_Documentation_CPT {
 		$button_icon = get_post_meta( $post->ID, 'pd_button_icon', true );
 		$button_link = get_post_meta( $post->ID, 'pd_button_link', true );
 		echo '<p><strong>Button Text</strong></p><input type="text" name="pd_button_text" value="' . esc_attr( $button_text ) . '" />';
-		echo '<p><strong>Button Icon (e.g., "IconBrandGithub")</strong></p><input type="text" name="pd_button_icon" value="' . esc_attr( $button_icon ) . '" />';
+		// echo '<p><strong>Button Icon (e.g., "IconBrandGithub")</strong></p><input type="text" name="pd_button_icon" value="' . esc_attr( $button_icon ) . '" />';
+		echo '<p><strong>Button Icon</strong></p>';
+		echo '<select name="pd_button_icon" id="pd-button-icon-select" style="width:100%;">';
+		echo '<option value="">' . __( '-- Select Icon --', 'pd-textdomain' ) . '</option>';
+		
+		$icons_list = $this->get_tabler_icons_list();
+		foreach ( $icons_list as $icon ) {
+			$selected = selected( $button_icon, $icon, false );
+			echo '<option value="' . esc_attr( $icon ) . '" ' . $selected . '>' . esc_html( $icon ) . '</option>';
+		}
+		
+		echo '</select>';
+		echo '<p class="description">Icon name from Tabler Icons (must be supported in the React code).</p>';
 		echo '<p><strong>Button Link</strong></p><input type="url" name="pd_button_link" value="' . esc_attr( $button_link ) . '" style="width:100%;" />';
 
 		// 6. Dependencies Textarea (for animation)
@@ -110,7 +137,7 @@ class Projects_Documentation_CPT {
 
 		echo '</select>';
 		echo '<button type="button" class="button button-secondary" id="pd-add-feature-button" style="margin-top: 5px;">';
-		echo '<span class="dashicons dashicons-plus" style="line-height: inherit;"></span> Add New Global Feature';
+		echo '<span class="dashicons dashicons-plus" style="line-height: 150%;"></span> Add New Global Feature';
 		echo '</button>';
 		echo '<p class="description">Select features from the list above. Use the button to add a new feature globally.</p>';
 	}
@@ -374,6 +401,13 @@ class Projects_Documentation_CPT {
 					},
 					minimumInputLength: 1 
 				});
+
+				$("#pd-button-icon-select").select2({
+				    placeholder: "Select an Icon...",
+				    allowClear: true,
+				    width: "100%",
+				});
+
 
 				// Function to add a new feature (used by the new button)
 				function addNewGlobalFeature(featureText) {
