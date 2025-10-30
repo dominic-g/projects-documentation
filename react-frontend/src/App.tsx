@@ -1,84 +1,196 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { MantineProvider, Loader, Center, AppShell, NavLink, Group, Text, TextInput, ActionIcon, ScrollArea, Title } from '@mantine/core';
+import { MantineProvider, Loader, Center, AppShell, NavLink, Group, Text, TextInput, ActionIcon, ScrollArea, Title } from '@mantine/core'; 
 import { IconChevronRight, IconSearch  } from '@tabler/icons-react';
-import { BrowserRouter as Router, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { theme } from './theme';
 import { ColorSchemeControl } from './components/ColorSchemeControl/ColorSchemeControl';
 import { Welcome } from './components/Welcome/Welcome';
 import { Logo } from './components/Logo/Logo';
-import DocPage from './DocPage';
+// import DocPage from './DocPage'; 
+// import DocPage, { DocData, Section } from './DocPage'; 
+// import DocPage, { type DocData, type Section } from './DocPage';
+import DocPage from './DocPage'; 
+import type { DocData, Section } from './DocPage';
 
-// Define the shape of the data from the WordPress API
-interface Section {
-  type: 'normal' | 'separator';
-  title: string;
-  content: string; // MDX content
-  placement: 'top' | 'bottom';
-}
+const MOCK_DOC_DATA = {
+    project_title: "Mantine Next.js +",
+    tagline_text: "Nextra template",
+    overview_text: "MOCK: This starter Next.js project includes a minimal setup for server side rendering, if you want to learn more on Mantine + Next.js integration follow this guide. To get started edit page.tsx file.",
+    logo_url: "",
+    button_text: "Use template v2.3.1 (MOCK)",
+    button_icon: "IconBrandGithub",
+    button_link: "#mock-link",
+    dependencies: "@gfazioli/mantine-marquee: ^2.6.1\n@mantine/core: 8.3.3", // Cleaned for simplicity
+    footer_html: "MOCK: <a href='#'>Footer Link</a>",
+    marquee_features: ["Mantine Marquee", "Mantine Reflection"],
+    doc_sections: [{
+        type: "normal",
+        title: "Introduction (MOCK)",
+        content: 
+`# Introduction (MOCK)
 
-interface DocData {
-  project_title: string;
-  tagline_text: string;
-  overview_text: string;
-  logo_url: string;
-  button_text: string;
-  button_icon: string;
-  button_link: string;
-  dependencies: string;
-  marquee_features: string[];
-  footer_html: string;
-  doc_sections: Section[];
-}
+Hello, world! Welcome to the Nextra + Mantine template.
 
-const DEFAULT_DOC_ID = 1; 
+Here is an explicit Mantine button for testing:
+
+<Center><Button color="red">Test Button</Button></Center>
+
+This template is from the MOCK data.`,
+        placement: "top"
+    },
+    {
+        type: "normal",
+        title: "MDX Overview (MOCK)",
+        content: "## Another Section \n\nSome **markdown** here.",
+        placement: "bottom"
+    },
+    {
+        type: "separator",
+        title: "MOCK SEPARATOR",
+        content: "",
+        placement: "bottom"
+    }],
+    linked_post_id: "0"
+};
 
 // --- App Root Component ---
 const AppRoot: React.FC = () => {
   const [data, setData] = useState<DocData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [toc, setToc] = useState<Array<{ id: string; text: string; level: number }>>([]); // **NEW TOC STATE**
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const [toc, setToc] = useState<Array<{ id: string; text: string; level: number }>>([]);
+  const config = (window as any).PD_GLOBAL_CONFIG;
+  const isDevMode = import.meta.env.DEV;
+  const [currentSectionSlug, setCurrentSectionSlug] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null); 
 
-  // Get the documentation post ID from the URL query parameter 'doc_id'
-  const docId = searchParams.get('doc_id') || DEFAULT_DOC_ID; 
+  const urlParams = new URLSearchParams(window.location.search);
+  const docId = urlParams.get('doc_id') || config.docId; 
+  const sectionParam = urlParams.get('section');
 
   const fetchDocumentation = useCallback(async () => {
-    // NOTE: This URL assumes your WordPress REST API is accessible at /wp-json/wp/v2/
-    const restApiBase = (window as any).PD_REST_BASE || '/wp-json/wp/v2/';
+    if (isDevMode) {
+      console.warn('🟡 Running in MOCK mode (npm run dev)');
+      // Simulate the delay
+      await new Promise(resolve => setTimeout(resolve, 500)); 
+      const mockDocData = MOCK_DOC_DATA.doc_sections; // To satisfy type checker
+      
+      // Find the correct default section title in mock data
+      const firstSectionTitle = mockDocData.find(s => s.type === 'normal')?.title || null;
+
+      setData(MOCK_DOC_DATA as DocData); 
+      
+      // Use 'section' param from URL, or default to first mock section
+      const sectionSlug = sectionParam || firstSectionTitle?.toLowerCase().replace(/\s+/g, '-') || null;
+
+      setCurrentSectionSlug(sectionSlug);
+      setIsLoading(false);
+      return;
+    }
+    const restApiBase = config.restBase; 
     const url = `${restApiBase}project-doc/${docId}`;
     
     try {
-      const response = await axios.get(url);
-      const docData = response.data.documentation_data as DocData;
-      setData(docData);
+        const response = await axios.get(url);
+        const docData = response.data.documentation_data as DocData;
+        
+        setData(docData);
 
-      // Navigate to the first doc section by default
-      if (docData.doc_sections.length > 0 && docData.doc_sections[0].type === 'normal' && location.pathname === '/') {
-        navigate(`/docs/${docData.doc_sections[0].title.toLowerCase().replace(/\s/g, '-')}`);
-      }
-    } catch (error) {
-      console.error('Error fetching documentation data:', error);
+        if (sectionParam) {
+            setCurrentSectionSlug(sectionParam);
+        } else {
+            // Default to the first normal section if no section param exists
+            const firstSection = docData.doc_sections.find((s: Section) => s.type === 'normal');
+            if (firstSection) {
+                // Set the slug but do NOT push state yet (will be done in initial useEffect)
+                setCurrentSectionSlug(firstSection.title.toLowerCase().replace(/\s+/g, '-'));
+            }
+        }
+    } catch (e: any) {
+        setError("Failed to load documentation: " + e.message);
+        console.error("Fetch Error:", e);
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
-  }, [docId, navigate]);
+  }, [docId, sectionParam, config, isDevMode]);
+
+  const handleNavigate = (sectionTitle: string) => {
+      const slug = sectionTitle.toLowerCase().replace(/\s+/g, '-');
+      
+      // Update state and URL
+      setCurrentSectionSlug(slug);
+      
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set('section', slug);
+      window.history.pushState({}, '', newUrl); // Use pushState to avoid full reload
+  };
+
+
+  const renderMainContent = () => {
+      if (!data) return <Center><Text>Loading content...</Text></Center>;
+
+      // **FIX 3: Handle the Welcome page as the default landing**
+      if (currentSectionSlug === null || currentSectionSlug === undefined) {
+          return <Welcome 
+            titleBase={data.project_title} 
+            tagline={data.tagline_text} 
+            overview={data.overview_text}
+            buttonText={data.button_text}
+            buttonLink={data.button_link}
+            buttonIcon={data.button_icon}
+            dependencies={data.dependencies}
+            marqueeFeatures={data.marquee_features}
+          />;
+      }
+
+      const currentSection = data.doc_sections.find((s: Section) => 
+          s.title.toLowerCase().replace(/\s+/g, '-') === currentSectionSlug
+      );
+
+      if (currentSection && currentSection.type === 'normal') {
+          return <DocPage 
+              title={currentSection.title} 
+              mdxContent={currentSection.content} 
+              onTocChange={setToc} 
+          />;
+      }
+
+      return <Center><Text>Section not found or is a separator.</Text></Center>;
+  };
 
   useEffect(() => {
     fetchDocumentation();
   }, [fetchDocumentation]);
+  
+  useEffect(() => {
+    if (data && !sectionParam && !isDevMode) {
+      // If data is loaded and no 'section' param is in URL, push the first section to URL
+      const firstSection = data.doc_sections.find(s => s.type === 'normal');
+      // const firstSection = docData.doc_sections.find((s: Section) => s.type === 'normal');
+      if (firstSection) {
+        const slug = firstSection.title.toLowerCase().replace(/\s+/g, '-');
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.set('section', slug);
+        window.history.pushState({}, '', newUrl);
+      }
+    }
+    if (isDevMode && data && !sectionParam) {
+         const firstSection = data.doc_sections.find(s => s.type === 'normal');
+         // const firstSection = data.doc_sections.find((s: Section) => s.type === 'normal');
+         if (firstSection) {
+            setCurrentSectionSlug(firstSection.title.toLowerCase().replace(/\s+/g, '-'));
+         }
+    }
+  }, [data, sectionParam, isDevMode]);
+
 
   if (isLoading) {
     return <Center h="100vh"><Loader size="xl" /></Center>;
   }
 
-  if (!data) {
-    return <Center h="100vh"><Text>Documentation not found or failed to load.</Text></Center>;
+  if (error || !data) {
+    return <Center h="100vh"><Text color="red">{error || 'Documentation not found.'}</Text></Center>;
   }
 
-  // Separate sections for navigation
-  const normalSections = data.doc_sections.filter(s => s.type === 'normal');
 
   return (
     <AppShell
@@ -95,24 +207,18 @@ const AppRoot: React.FC = () => {
                 <Text size="lg" fw={800} c="blue">{data.project_title} {data.tagline_text}</Text>
             </Group>
 
-            {/* RIGHT SIDE: Controls (Now fixed with correct imports) */}
-            <Group>
+            {/* RIGHT SIDE: Controls */}
+             <Group>
                 <TextInput
                     placeholder="Search documentation..."
-                    leftSection={<ActionIcon variant="transparent" size="md"><IconSearch size={18} /></ActionIcon>}
+                    leftSection={<ActionIcon variant="transparent" size="md" aria-label="Search"><IconSearch size={18} /></ActionIcon>}
                     size="sm"
                     radius="xl"
                     style={{ width: 200 }}
                     disabled 
                 />
                 <ColorSchemeControl />
-                <iframe
-                    src="https://github.com/sponsors/gfazioli/button"
-                    title="Sponsor gfazioli"
-                    height="32"
-                    width="114"
-                    style={{ border: 0, borderRadius: '6px' }}
-                />
+              
             </Group>
         </Group>
       </AppShell.Header>
@@ -120,8 +226,10 @@ const AppRoot: React.FC = () => {
       <AppShell.Navbar p="md">
         {/* Left Sidebar: Section Navigation */}
         <ScrollArea h="100%" style={{ paddingRight: '10px' }}>
-            {data.doc_sections.map((section, index) => {
-                const path = `/docs/${section.title.toLowerCase().replace(/\s/g, '-')}`;
+            {data.doc_sections.map((section: Section, index: number) => {
+                const slug = section.title.toLowerCase().replace(/\s+/g, '-');
+                const path = `?doc_id=${docId}&section=${slug}`;
+                
                 if (section.type === 'separator') {
                     return <Text key={index} my="sm" fw={700} c="dimmed" tt="uppercase" fz="xs">{section.title}</Text>;
                 }
@@ -130,10 +238,13 @@ const AppRoot: React.FC = () => {
                         key={index}
                         label={section.title}
                         component="a"
-                        href={path}
-                        onClick={(e) => { e.preventDefault(); navigate(path); }}
+                        href={path} 
+                        onClick={(e) => { 
+                            e.preventDefault(); 
+                            handleNavigate(section.title); 
+                        }}
                         rightSection={<IconChevronRight size="0.8rem" stroke={1.5} />}
-                        active={location.pathname.includes(path)}
+                        active={currentSectionSlug === slug}
                     />
                 );
             })}
@@ -141,7 +252,6 @@ const AppRoot: React.FC = () => {
       </AppShell.Navbar>
 
       <AppShell.Aside p="md" hiddenFrom="lg">
-        {/* Right Sidebar: Table of Contents (TOC) */}
         <ScrollArea h="100%">
           <Title order={4} mb="md">Table of Contents</Title>
           {toc.length === 0 && <Text c="dimmed">No headings found for this section.</Text>}
@@ -161,34 +271,7 @@ const AppRoot: React.FC = () => {
       </AppShell.Aside>
 
       <AppShell.Main>
-        <Routes>
-          {/* Default Welcome Route - Renders Welcome and navigates to first section */}
-          <Route path="/" element={<Welcome 
-            titleBase={data.project_title} 
-            tagline={data.tagline_text} 
-            overview={data.overview_text}
-            buttonText={data.button_text}
-            buttonLink={data.button_link}
-            buttonIcon={data.button_icon}
-            dependencies={data.dependencies}
-            marqueeFeatures={data.marquee_features}
-          />} />
-
-          {/* Dynamic Documentation Routes */}
-          {normalSections.map((section, index) => (
-            <Route 
-              key={index} 
-              path={`/docs/${section.title.toLowerCase().replace(/\s/g, '-')}`} 
-              element={<DocPage 
-                          title={section.title} 
-                          mdxContent={section.content} 
-                          onTocChange={setToc} // **FIX: Pass the state setter to DocPage**
-                      />} 
-            />
-          ))}
-
-          <Route path="*" element={<Center><Text>404 - Page not found</Text></Center>} />
-        </Routes>
+        {renderMainContent()}
       </AppShell.Main>
       
       <AppShell.Footer>
@@ -198,12 +281,9 @@ const AppRoot: React.FC = () => {
   );
 };
 
-// Wrapper with Router and Mantine Provider
 const App: React.FC = () => (
   <MantineProvider theme={theme}>
-    <Router basename={ (window as any).PD_BASE_PATH || '/' }>
-        <AppRoot />
-    </Router>
+    <AppRoot />
   </MantineProvider>
 );
 

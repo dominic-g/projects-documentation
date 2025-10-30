@@ -3,10 +3,6 @@
 /**
  * Custom styles
  *
- * You can add your own custom styles here. This file will be imported after the theme styles.
- * This is a great place to add your own utility classes or override styles.
- *
- * In this case we're going to fix a glitch with the text size in the code blocks. 
  */
 @layer overwrite {
   :root {
@@ -24,3 +20,7 @@
 }
 
 @layer components, mantine, nextra, overwrite;
+
+#wpadminbar{
+  display: none;
+}

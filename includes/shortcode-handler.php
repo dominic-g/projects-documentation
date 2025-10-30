@@ -12,15 +12,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Register the shortcode.
  */
 function pd_register_shortcode() {
-    add_shortcode( 'project_doc', 'pd_documentation_shortcode_handler' );
+    add_shortcode( 'project_doc_link', 'pd_documentation_link_handler' ); 
+    
+    add_shortcode( 'project_doc_viewer', 'pd_documentation_viewer_handler' );
 }
 
+
 /**
- * Shortcode to display documentation link for a given post.
- * Usage: [project_doc post_id="X"]
- * X is the ID of the parent post (e.g., a "Product" CPT).
+ * Shortcode callback function for the link.
+ * Usage: [project_doc_link post_id="X" text="Docs"]
  */
-function pd_documentation_shortcode_handler( $atts ) {
+function pd_documentation_link_handler( $atts ) {
 	$atts = shortcode_atts(
 		array(
 			'post_id' => get_the_ID(), 
@@ -28,7 +30,7 @@ function pd_documentation_shortcode_handler( $atts ) {
 			'class'   => 'pd-doc-link',
 		),
 		$atts,
-		'project_doc'
+		'project_doc_link'
 	);
 
 	$parent_post_id = absint( $atts['post_id'] );
@@ -36,6 +38,7 @@ function pd_documentation_shortcode_handler( $atts ) {
 		return ''; 
 	}
 
+	$doc_post = null; 
 	$doc_post_query = new WP_Query( array(
 		'post_type'      => 'project-doc',
 		'post_status'    => 'publish',
@@ -44,19 +47,26 @@ function pd_documentation_shortcode_handler( $atts ) {
 		'meta_value'     => $parent_post_id,
 	) );
 
-	if ( ! $doc_post_query->have_posts() ) {
+	if ( $doc_post_query->have_posts() ) {
+		$doc_post = $doc_post_query->posts[0];
+	}
+
+	wp_reset_postdata();
+
+	if ( ! $doc_post ) {
 		return ''; 
 	}
 
-	$doc_post = $doc_post_query->posts[0];
-	wp_reset_postdata();
+	$viewer_page = get_page_by_path( 'docs-viewer' ); 
 
-	$base_url = home_url( '/docs-viewer/' );
+	if ( ! $viewer_page ) {
+	    return '<!-- Error: Docs Viewer Page not found. -->';
+	}
 
-	
+	// Construct the final link URL: /docs-viewer/?doc_id=123
 	$link_url = add_query_arg( array(
 		'doc_id' => $doc_post->ID,
-	), $base_url );
+	), get_permalink( $viewer_page->ID ) );
 
 	
 	return sprintf(
@@ -65,4 +75,12 @@ function pd_documentation_shortcode_handler( $atts ) {
 		esc_attr( $atts['class'] ),
 		esc_html( $atts['text'] )
 	);
+}
+
+/**
+ * Shortcode callback function for the React app container.
+ * Usage: [project_doc_viewer]
+ */
+function pd_documentation_viewer_handler() {
+    return '<div id="root"></div>';
 }

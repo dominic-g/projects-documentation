@@ -13,7 +13,6 @@ output.txt
 import-seeder.php
 
 node_modules
-dist
 dist-ssr
 *.local
 
