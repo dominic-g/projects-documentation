@@ -315,6 +315,7 @@ class Projects_Documentation_CPT {
 					</div>
 				</div>
 				<div class="pd-section-fields" style="padding: 10px; display: <?php echo $is_template ? 'block' : 'none'; ?>">
+				<!-- <div class="pd-section-fields" style="padding: 10px; display: <?php echo $is_template ? 'block' : 'block'; ?>"> -->
 					<p>
 						<label>Section Title:</label>
 						<input type="text" name="pd_doc_sections[<?php echo esc_attr( $index ); ?>][title]" value="<?php echo esc_attr( $section_data['title'] ); ?>" class="pd-section-title-input" style="width:100%;" />
@@ -423,11 +424,9 @@ class Projects_Documentation_CPT {
 						},
 						success: function(response) {
 							if (response.success) {
-								// 1. Add new feature to the Select2 list
 								var newOption = new Option(featureText, featureText, true, true);
 								$("#pd-marquee-features-select").append(newOption).trigger("change");
 								
-								// 2. Clear the input and hide the modal/input (if we had a modal)
 								$("#new-feature-input").val("");
 								alert("Feature \'" + featureText + "\' added globally and selected for this project.");
 
@@ -450,8 +449,179 @@ class Projects_Documentation_CPT {
 					}
 				});
 				
-				// --- REPEATER/SORTABLE LOGIC --- (The rest of the JS remains the same as your latest version)
-				// ... (keep the rest of the JS here) ...
+				
+				// Make sections sortable
+
+
+				repeaterList.sortable({
+
+
+					handle: ".hndle",
+
+
+					items: ".pd-section-item"
+
+
+				});
+
+
+
+
+				// Add New Section
+
+
+				$("#add-section-button").on("click", function() {
+
+
+					var template = $(".pd-section-template");
+
+
+					var newSection = template.clone(true);
+
+
+					
+
+
+					newSection.removeClass("pd-section-template").addClass("pd-section-item").attr("style", "margin-top: 10px; padding: 0;");
+
+
+					
+
+
+					// Replace placeholder index with a unique one
+
+
+					var html = newSection.html().replace(/PD_REPEATER_INDEX/g, newIndex);
+
+
+					newSection.html(html);
+
+
+					newSection.attr("data-index", newIndex);
+
+
+
+
+
+					// Set initial state
+
+
+					newSection.find(".pd-section-fields").show();
+
+
+					newSection.find(".hndle span:first").text("New Untitled Section (Type: normal)");
+
+
+
+
+
+					// Append and increment index
+
+
+					repeaterList.append(newSection);
+
+
+					newIndex++;
+
+				});
+
+
+				// Delete Section
+
+
+				repeaterList.on("click", ".pd-delete-section", function(e) {
+
+
+					e.preventDefault();
+
+
+					if (confirm("Are you sure you want to delete this section?")) {
+
+
+						$(this).closest(".pd-section-item").remove();
+
+
+					}
+
+
+				});
+
+
+				// Toggle Section (Accordion functionality)
+
+
+				repeaterList.on("click", ".hndle", function(e) {
+
+
+					// Ignore clicks on buttons
+
+
+					if ($(e.target).hasClass("button-secondary") || $(e.target).hasClass("dashicons")) {
+
+
+						return;
+
+
+					}
+
+
+					var item = $(this).closest(".pd-section-item");
+
+
+					item.find(".pd-section-fields").slideToggle(200);
+
+
+				});
+
+
+
+
+
+				// Update title in header
+
+
+				repeaterList.on("change keyup", ".pd-section-title-input", function() {
+
+
+					var title = $(this).val();
+
+
+					var type = $(this).closest(".pd-section-item").find(".pd-section-type-select").val();
+
+
+					$(this).closest(".pd-section-item").find(".hndle span:first").html(title + \' <span style="font-style: italic; color: #888;"> (Type: \' + type + \')</span>\');
+
+
+				});
+
+
+
+
+
+				// Toggle MDX content area based on type
+
+
+				repeaterList.on("change", ".pd-section-type-select", function() {
+
+
+					var item = $(this).closest(".pd-section-item");
+
+
+					var type = $(this).val();
+
+
+					item.find(".pd-mdx-content-area").toggle(type === "normal");
+
+
+					// Update title display
+
+
+					var title = item.find(".pd-section-title-input").val();
+
+
+					item.find(".hndle span:first").html(title + \' <span style="font-style: italic; color: #888;"> (Type: \' + type + \')</span>\');
+
+				});
 			});
 		';
 		wp_add_inline_script( 'select2', $js, 'after' );
