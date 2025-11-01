@@ -611,8 +611,8 @@ class Projects_Documentation_CPT {
 				$new_sections[] = array(
 					'type'      => sanitize_text_field( $section['type'] ),
 					'title'     => sanitize_text_field( $section['title'] ),
-					// Preserve MDX content with basic kses filter (allows some tags, but not script)
-					'content'   => ( 'normal' === $section['type'] ) ? wp_kses_post( $section['content'] ) : '',
+					// 'content'   => ( 'normal' === $section['type'] ) ? wp_kses_post( $section['content'] ) : '',
+					'content'   => ( 'normal' === $section['type'] ) ? wp_slash( $section['content'] ) : '',
 					'placement' => sanitize_text_field( $section['placement'] ),
 				);
 			}

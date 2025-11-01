@@ -5,6 +5,7 @@ import { compile, run } from '@mdx-js/mdx';
 import * as runtime from 'react/jsx-runtime';
 import { useMDXComponents as getMDXComponents } from '@mdx-js/react';
 import { useMDXComponents as mdxComponentsHook } from '@/mdx-components.tsx';
+import { FileTree } from "./components/FileTreeLabel/FileTree";
 
 
 export interface Section {
@@ -52,6 +53,18 @@ const DocPage: React.FC<DocPageProps> = ({ mdxContent, onTocChange }) => {
     Text: Mantine.Text,
     Title: Mantine.Title,
     ScrollArea: Mantine.ScrollArea,
+    Callout: ({ children }: any) => (
+      <Mantine.Box p="sm" bg="yellow.0" style={{ borderRadius: 4 }}>
+        <Mantine.Text fw={700}>Note: </Mantine.Text>
+        {children}
+      </Mantine.Box>
+    ),
+    Steps: ({ children }: any) => (
+      <Mantine.Box component="ol" ml="lg" style={{ listStyle: "auto" }}>
+        {children}
+      </Mantine.Box>
+    ),
+    FileTree,
 
   };
 
