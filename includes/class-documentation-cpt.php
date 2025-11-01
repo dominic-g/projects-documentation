@@ -167,7 +167,7 @@ class Projects_Documentation_CPT {
 				// Output existing sections
 				if ( ! empty( $sections ) ) {
 					foreach ( $sections as $key => $section ) {
-						$this->render_single_section_item( $key, $section );
+						$this->render_single_section_item( $key, $section,  );
 					}
 				}
 				?>
@@ -293,14 +293,14 @@ class Projects_Documentation_CPT {
 	 */
 	private function render_single_section_item( $index, $section_data, $is_template = false ) {
 		$display = $is_template ? 'none' : 'block';
-		$class = $is_template ? 'pd-section-template' : 'pd-section-item postbox';
+		$class = $is_template ? 'pd-section-template' : 'pd-section-item postbox closed';
 		$style = "display:{$display}; margin-top: 10px; padding: 0;";
 		$is_normal = ( 'normal' === $section_data['type'] );
 		$toggle_class = $is_template ? 'closed' : '';
 		?>
 		<li class="<?php echo esc_attr( $class ); ?>" data-index="<?php echo esc_attr( $index ); ?>" style="<?php echo esc_attr( $style ); ?>">
 			<div class="inside" style="padding: 10px;">
-				<div class="hndle" style="cursor: pointer; padding: 10px; border-bottom: 1px solid #eee;">
+				<div class="hndle" style="cursor: pointer; padding: 10px; ">
 					<span>
 						<?php echo esc_html( $section_data['title'] ? $section_data['title'] : '(Untitled Section)' ); ?>
 						<span style="font-style: italic; color: #888;"> (Type: <?php echo esc_html( $section_data['type'] ); ?>)</span>
@@ -309,12 +309,12 @@ class Projects_Documentation_CPT {
 						<button type="button" class="button button-secondary pd-delete-section" title="Delete">
 							<span class="dashicons dashicons-trash"></span>
 						</button>
-						<button type="button" class="button button-secondary toggle-indicator" title="Toggle">
-							<span class="dashicons dashicons-arrow-up"></span>
+						<button type="button" class="button button-secondary toggle-indicator_" title="Toggle">
+							<span class="dashicons dashicons-arrow-down"></span>
 						</button>
 					</div>
 				</div>
-				<div class="pd-section-fields" style="padding: 10px; display: <?php echo $is_template ? 'block' : 'none'; ?>">
+				<div class="pd-section-fields" style="padding: 10px;">
 				<!-- <div class="pd-section-fields" style="padding: 10px; display: <?php echo $is_template ? 'block' : 'block'; ?>"> -->
 					<p>
 						<label>Section Title:</label>
@@ -420,7 +420,7 @@ class Projects_Documentation_CPT {
 						data: {
 							action: "pd_add_global_feature",
 							feature: featureText,
-							pd_nonce: "' . wp_create_nonce( 'pd_add_feature_nonce' ) . '", // Security nonce
+							pd_nonce: "' . wp_create_nonce( 'pd_add_feature_nonce' ) . '",
 						},
 						success: function(response) {
 							if (response.success) {
@@ -449,178 +449,65 @@ class Projects_Documentation_CPT {
 					}
 				});
 				
-				
 				// Make sections sortable
-
-
 				repeaterList.sortable({
-
-
 					handle: ".hndle",
-
-
 					items: ".pd-section-item"
-
-
 				});
-
-
-
 
 				// Add New Section
-
-
 				$("#add-section-button").on("click", function() {
-
-
 					var template = $(".pd-section-template");
-
-
 					var newSection = template.clone(true);
-
-
-					
-
-
 					newSection.removeClass("pd-section-template").addClass("pd-section-item").attr("style", "margin-top: 10px; padding: 0;");
 
-
-					
-
-
 					// Replace placeholder index with a unique one
-
-
 					var html = newSection.html().replace(/PD_REPEATER_INDEX/g, newIndex);
-
-
 					newSection.html(html);
-
-
 					newSection.attr("data-index", newIndex);
-
-
-
-
-
 					// Set initial state
-
-
 					newSection.find(".pd-section-fields").show();
-
-
 					newSection.find(".hndle span:first").text("New Untitled Section (Type: normal)");
-
-
-
-
-
 					// Append and increment index
-
-
 					repeaterList.append(newSection);
-
-
 					newIndex++;
-
 				});
-
 
 				// Delete Section
-
-
 				repeaterList.on("click", ".pd-delete-section", function(e) {
-
-
 					e.preventDefault();
-
-
 					if (confirm("Are you sure you want to delete this section?")) {
-
-
 						$(this).closest(".pd-section-item").remove();
-
-
 					}
-
-
 				});
-
 
 				// Toggle Section (Accordion functionality)
-
-
 				repeaterList.on("click", ".hndle", function(e) {
-
-
 					// Ignore clicks on buttons
-
-
 					if ($(e.target).hasClass("button-secondary") || $(e.target).hasClass("dashicons")) {
-
-
 						return;
-
-
 					}
-
-
 					var item = $(this).closest(".pd-section-item");
-
-
 					item.find(".pd-section-fields").slideToggle(200);
-
-
 				});
-
-
-
-
 
 				// Update title in header
-
-
 				repeaterList.on("change keyup", ".pd-section-title-input", function() {
-
-
 					var title = $(this).val();
-
-
 					var type = $(this).closest(".pd-section-item").find(".pd-section-type-select").val();
-
-
 					$(this).closest(".pd-section-item").find(".hndle span:first").html(title + \' <span style="font-style: italic; color: #888;"> (Type: \' + type + \')</span>\');
-
-
 				});
 
-
-
-
-
 				// Toggle MDX content area based on type
-
-
 				repeaterList.on("change", ".pd-section-type-select", function() {
-
-
 					var item = $(this).closest(".pd-section-item");
-
-
 					var type = $(this).val();
-
 
 					item.find(".pd-mdx-content-area").toggle(type === "normal");
 
-
 					// Update title display
-
-
 					var title = item.find(".pd-section-title-input").val();
-
-
 					item.find(".hndle span:first").html(title + \' <span style="font-style: italic; color: #888;"> (Type: \' + type + \')</span>\');
-
 				});
 			});
 		';
@@ -630,6 +517,15 @@ class Projects_Documentation_CPT {
 			.pd-section-item .hndle { display: flex; justify-content: space-between; align-items: center; }
 			.pd-section-item .handle-actions { display: flex; gap: 5px; }
 			.pd-section-template { display: none !important; }
+			.pd-section-item.postbox.closed{ border: 1px solid #c3c4c7;}
+			.pd-section-item.closed .pd-section-fields{ display: none;}
+			.pd-section-item.closed .inside,.pd-section-item .inside{ display: block;}
+			.pd-section-item .inside .hndle{ border-bottom: 1px solid #eee;}
+			.pd-section-item .inside .hndle .handle-actions button{ display: flex; align-items: center;}
+			.pd-section-item .inside .hndle .handle-actions button .dashicons-arrow-down::before{ content: "\f142"; }
+			.pd-section-item.closed .inside .hndle .handle-actions button .dashicons-arrow-down::before{ content: "\f140"; }
+			.pd-section-item.closed .inside .hndle{ border-bottom: none;}
+
 		';
 		wp_add_inline_style( 'wp-admin', $css );
 	}
@@ -660,12 +556,16 @@ class Projects_Documentation_CPT {
 			return $post_id;
 		}
 
-		$fields_to_save = array( 'pd_project_title', 'pd_tagline_text', 'pd_overview_text', 'pd_logo_url', 'pd_button_text', 'pd_button_icon', 'pd_button_link', 'pd_dependencies' );
+		$fields_to_save = array( 'pd_project_title', 'pd_tagline_text', 'pd_overview_text', 'pd_logo_url', 'pd_button_text', 'pd_button_icon', 'pd_button_link' );
 		foreach ( $fields_to_save as $field ) {
 			if ( isset( $_POST[ $field ] ) ) {
 				update_post_meta( $post_id, $field, sanitize_text_field( wp_unslash( $_POST[ $field ] ) ) );
 			}
 		}
+
+		if ( isset( $_POST['pd_dependencies'] ) ) {
+            update_post_meta( $post_id, 'pd_dependencies', esc_textarea( wp_unslash( $_POST['pd_dependencies'] ) ) );
+        }
 
 		// Marquee Features (Selct2)
 		if ( isset( $_POST['pd_marquee_features'] ) && is_array( $_POST['pd_marquee_features'] ) ) {
@@ -696,7 +596,18 @@ class Projects_Documentation_CPT {
 			$new_sections = array();
 			$sections = wp_unslash( $_POST['pd_doc_sections'] );
 
-			foreach ( $sections as $section ) {
+			// print_r($sections); die();
+
+			foreach ( $sections as $key => $section ) {
+				if ( 'PD_REPEATER_INDEX' === $key ) {
+		            continue;
+		        }
+
+		        $is_empty = empty( $section['title'] ) && empty( $section['content'] );
+		        if ( $is_empty && 'separator' !== $section['type'] ) {
+		            continue;
+		        }
+
 				$new_sections[] = array(
 					'type'      => sanitize_text_field( $section['type'] ),
 					'title'     => sanitize_text_field( $section['title'] ),
@@ -709,7 +620,6 @@ class Projects_Documentation_CPT {
 			// Save the final, cleaned array
 			update_post_meta( $post_id, 'pd_doc_sections', $new_sections );
 		} else {
-			// If no sections are submitted (e.g., all deleted)
 			delete_post_meta( $post_id, 'pd_doc_sections' );
 		}
 
