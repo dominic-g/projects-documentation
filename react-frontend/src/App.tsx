@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { MantineProvider, Loader, Center, AppShell, NavLink, Group, Text, TextInput, ActionIcon, ScrollArea, Title } from '@mantine/core'; 
+import { MantineProvider, Loader, Center, AppShell, NavLink, Group, Text, TextInput, ActionIcon, ScrollArea, Title, Divider } from '@mantine/core'; 
 import { IconChevronRight, IconSearch  } from '@tabler/icons-react';
 import axios from 'axios';
 import { theme } from './theme';
@@ -231,7 +231,8 @@ const AppRoot: React.FC = () => {
                 const path = `?doc_id=${docId}&section=${slug}`;
                 
                 if (section.type === 'separator') {
-                    return <Text key={index} my="sm" fw={700} c="dimmed" tt="uppercase" fz="xs">{section.title}</Text>;
+                    // return <Text key={index} my="sm" fw={700} c="dimmed" tt="uppercase" fz="xs">{section.title}</Text>;
+                    return <Divider key={index} my="md" labelPosition="center" />; 
                 }
                 return (
                     <NavLink
@@ -251,7 +252,7 @@ const AppRoot: React.FC = () => {
         </ScrollArea>
       </AppShell.Navbar>
 
-      <AppShell.Aside p="md" hiddenFrom="lg">
+      <AppShell.Aside p="md">
         <ScrollArea h="100%">
           <Title order={4} mb="md">Table of Contents</Title>
           {toc.length === 0 && <Text c="dimmed">No headings found for this section.</Text>}
@@ -282,7 +283,7 @@ const AppRoot: React.FC = () => {
 };
 
 const App: React.FC = () => (
-  <MantineProvider theme={theme}>
+  <MantineProvider theme={theme} defaultColorScheme="auto" >
     <AppRoot />
   </MantineProvider>
 );

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Title, Text, ScrollArea, Center } from '@mantine/core'; 
+import { Text, ScrollArea, Center } from '@mantine/core'; 
 import * as Mantine from '@mantine/core'; 
 import { compile, run } from '@mdx-js/mdx';
 import * as runtime from 'react/jsx-runtime';
@@ -40,36 +40,26 @@ interface DocPageProps {
   onTocChange: (toc: TocItem[]) => void;
 }
 
-const DocPage: React.FC<DocPageProps> = ({ title, mdxContent, onTocChange }) => {
+const DocPage: React.FC<DocPageProps> = ({ mdxContent, onTocChange }) => {
   const [compiledMdx, setCompiledMdx] = useState<React.ReactElement | null>(null);
   
-  // NOTE: You must use the components provided by the useMDXComponents *hook*.
-  // It handles context. Let's combine components here cleanly:
   const providedComponents = mdxComponentsHook();
   
-  // Combine all standard MDX and all Mantine components here for maximum reach in the render scope
   const components = {
-    ...providedComponents, // Components from our injected list
-    // You only need to add components to this object if they are directly
-    // called as simple MDX tags AND were NOT defined in mdx-components.tsx.
+    ...providedComponents,
     Button: Mantine.Button,
     Center: Mantine.Center,
     Text: Mantine.Text,
     Title: Mantine.Title,
     ScrollArea: Mantine.ScrollArea,
-    // Add all others (Card, Stack, etc.) if they were NOT already defined.
-    // However, if the components are in the mdx-components.tsx list, the custom 
-    // export is sufficient.
 
   };
 
   useEffect(() => {
-    // Hoisting check: Declare run/compile-related items OUTSIDE of try/catch if possible, 
-    // or ensure all await operations are defined clearly.
     let isMounted = true;
     
     const compileAndRender = async () => {
-      if (!mdxContent) return; // Prevent compile on empty data
+      if (!mdxContent) return;
       
       try {
         const compiled = await compile(mdxContent, {
@@ -85,7 +75,7 @@ const DocPage: React.FC<DocPageProps> = ({ title, mdxContent, onTocChange }) => 
         
         if (!isMounted) return;
         
-        const newToc: TocItem[] = [];
+        /*const newToc: TocItem[] = [];
         const headings = mdxContent.matchAll(/^(#{2,4})\s+(.+)/gm);
         for (const match of headings) {
           const level = match[1].length;
@@ -95,11 +85,11 @@ const DocPage: React.FC<DocPageProps> = ({ title, mdxContent, onTocChange }) => 
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/^-+|-+$/g, '');
           newToc.push({ id: slug, text, level });
-        }
+        }*/
 
         setCompiledMdx(<Content components={components} />);
 
-        onTocChange(newToc);
+        // onTocChange(newToc);
 
       } catch (error) {
         if (!isMounted) return; // Cleanup check
@@ -112,7 +102,38 @@ const DocPage: React.FC<DocPageProps> = ({ title, mdxContent, onTocChange }) => 
 
     compileAndRender();
     return () => { isMounted = false };
-  }, [mdxContent]); // Removed components and onTocChange from dependencies as they are functions
+  }, [mdxContent]); 
+
+  useEffect(() => {
+    if (compiledMdx && mdxContent) {
+      // console.log('--- TOC Scraper Running ---');
+      const mainContentElement = document.querySelector('.mantine-AppShell-main'); 
+
+      if (mainContentElement) {
+        // console.log('Scraper found main content element.');
+        const renderedHeadings = mainContentElement.querySelectorAll('h2, h3, h4'); 
+        if (renderedHeadings.length === 0) {
+          // console.warn('Scraper found 0 headings (H2, H3, H4) to build TOC.'); // Log 3a: Empty headings
+        }
+        const newToc: TocItem[] = Array.from(renderedHeadings).map(h => {
+            const text = h.textContent || '';
+            const slug = h.id || text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+            
+            if (!h.id) h.setAttribute('id', slug);
+
+            return {
+                id: slug,
+                text: text,
+                level: parseInt(h.tagName.substring(1), 10)
+            };
+        }).filter(item => item.id);
+        
+        // console.log('TOC built and sent to App.tsx:', newToc); 
+        
+        onTocChange(newToc);
+      }
+    }
+  }, [compiledMdx, onTocChange]);
 
   if (!compiledMdx) {
     return (
@@ -121,15 +142,12 @@ const DocPage: React.FC<DocPageProps> = ({ title, mdxContent, onTocChange }) => 
       </Center>
     );
   }
-  // The rest of the return block is fine:
   return (
     <ScrollArea h="100%" style={{ padding: '0 32px' }}>
-      <Title order={1} style={{ marginBottom: '20px' }}>
-        {title}
-      </Title>
       {compiledMdx}
     </ScrollArea>
   );
 };
+
 
 export default DocPage;

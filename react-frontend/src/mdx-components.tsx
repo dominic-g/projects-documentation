@@ -1,4 +1,6 @@
 import { useMDXComponents as getMDXComponents } from '@mdx-js/react';
+import { IconExternalLink } from '@tabler/icons-react';
+
 
 import {
   Anchor,
@@ -41,7 +43,33 @@ const defaultMantineComponents = {
   List: List,
   Grid: Grid,
   Group: Group,
-  Anchor: Anchor,
+  // Anchor: Anchor,
+
+  a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
+    const isExternal = props.href && (props.href.startsWith('http') || props.href.startsWith('https') || props.target === '_blank');
+    const { href, children, ...rest } = props;
+    if (isExternal) {
+      return (
+        <Anchor
+          href={href} 
+          target="_blank"
+          rel="noopener noreferrer"
+          {...rest}
+          style={{ display: 'inline-flex', alignItems: 'center' }}
+        >
+          {children}
+          <IconExternalLink 
+              size={14} 
+              stroke={1.7} 
+              className="tabler-icon"
+              style={{ marginLeft: '0.15em', verticalAlign: 'middle', alignSelf: 'normal' }}
+          />
+        </Anchor>
+      );
+    }
+
+    return <Anchor {...props} />;
+  },
 };
 
 
