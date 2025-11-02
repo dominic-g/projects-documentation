@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { MantineProvider, Loader, Center, AppShell, NavLink, Group, Text, TextInput, ActionIcon, ScrollArea, Title, Divider } from '@mantine/core'; 
+import { MantineProvider, Loader, Center, AppShell, NavLink, Group, Text, TextInput, ScrollArea, Title, Divider, Box, Popover } from '@mantine/core'; 
 import { IconChevronRight, IconSearch  } from '@tabler/icons-react';
+import { useDebouncedCallback } from '@mantine/hooks';
 import axios from 'axios';
 import { theme } from './theme';
 import { ColorSchemeControl } from './components/ColorSchemeControl/ColorSchemeControl';
@@ -53,6 +54,12 @@ This template is from the MOCK data.`,
     linked_post_id: "0"
 };
 
+export interface SearchItem {
+    sec_title: string;
+    url: string;
+    excerpt_html: string;
+}
+
 // --- App Root Component ---
 const AppRoot: React.FC = () => {
   const [data, setData] = useState<DocData | null>(null);
@@ -60,14 +67,24 @@ const AppRoot: React.FC = () => {
   const [toc, setToc] = useState<Array<{ id: string; text: string; level: number }>>([]);
   const config = (window as any).PD_GLOBAL_CONFIG;
   const isDevMode = import.meta.env.DEV;
+
+  const urlParams = new URLSearchParams(window.location.search);
+  // const docId = urlParams.get('doc_id') || config.docId; 
+  const sectionParam = urlParams.get('section');
+  const currentDocId = urlParams.get('doc_id') || config.docId; 
+  
   const [currentSectionSlug, setCurrentSectionSlug] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null); 
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const docId = urlParams.get('doc_id') || config.docId; 
-  const sectionParam = urlParams.get('section');
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchItem[]>([]);
+  const [isSearchOpen, setIsSearchOpen] = useState(false); // FIX: Declaration of missing state
+  const [isSearching, setIsSearching] = useState(false);   // FIX: Declaration of missing state
+
 
   const fetchDocumentation = useCallback(async () => {
+    const docId = currentDocId;
     if (isDevMode) {
       console.warn('🟡 Running in MOCK mode (npm run dev)');
       // Simulate the delay
@@ -111,8 +128,53 @@ const AppRoot: React.FC = () => {
     } finally {
         setIsLoading(false);
     }
-  }, [docId, sectionParam, config, isDevMode]);
+  }, [currentDocId, sectionParam, config, isDevMode]);
 
+
+  const performSearch = useDebouncedCallback(
+    // Debouncing ensures we don't call the API on every key stroke
+    async (query: string) => {
+        // console.log('2. Debounced Call Executed with Query:', query);
+        if (query.length < 3) {
+          // console.warn('   - Search Aborted: Query < 3 chars');
+          setSearchResults([]);
+          setIsSearchOpen(false);
+          return;
+        }
+        // console.log(config);
+        // console.log("current doc id ",currentDocId);
+        const endpoint = config.searchEndpoint; 
+        if (!endpoint || !currentDocId) return;
+        // if (!endpoint || !currentDocId) {
+        //     console.error('   - Search Aborted: Missing Endpoint or Doc ID!');
+        //     return;
+        // }
+
+        setIsSearching(true);
+        setIsSearchOpen(true);
+
+        // console.log('3. Firing API Request to:', `${endpoint}?q=${encodeURIComponent(query)}&doc_id=${currentDocId}`);
+        
+        try {
+          const url = `${endpoint}?q=${encodeURIComponent(query)}&doc_id=${currentDocId}`; 
+          const response = await axios.get(url);
+          // console.log('4. API Success:', response.data);
+          setSearchResults(response.data as SearchItem[]);
+        } catch (error) {
+          console.error('Search API Failed:', error);
+          setSearchResults([]);        
+        } finally {
+          setIsSearching(false);
+        }
+    }, 300 
+  );
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const query = e.target.value;
+      setSearchTerm(query);
+      // console.log('1. Input Change Detected:', query);
+      performSearch(query);
+  };
   const handleNavigate = (sectionTitle: string) => {
       const slug = sectionTitle.toLowerCase().replace(/\s+/g, '-');
       
@@ -209,15 +271,83 @@ const AppRoot: React.FC = () => {
 
             {/* RIGHT SIDE: Controls */}
              <Group>
-                <TextInput
-                    placeholder="Search documentation..."
-                    leftSection={<ActionIcon variant="transparent" size="md" aria-label="Search"><IconSearch size={18} /></ActionIcon>}
-                    size="sm"
-                    radius="xl"
-                    style={{ width: 200 }}
-                    disabled 
-                />
+              <Group>
+
+                <Popover
+                    opened={isSearchOpen}
+                    onChange={setIsSearchOpen}
+                    position="bottom-end"
+                    shadow="xl"
+                    transitionProps={{ transition: 'pop', duration: 200 }}
+                    offset={15}
+                    withArrow
+                    zIndex={99999}
+                    withinPortal
+                    trapFocus={false}
+                    // closeOnBlur={false}
+                >
+                    <Popover.Target>
+                        {/* THIS IS THE TEXT INPUT FIELD (The trigger) */}
+                        <TextInput
+                            placeholder="Search documentation..."
+                            leftSection={<IconSearch size={18} />}
+                            size="sm"
+                            radius="xl"
+                            value={searchTerm}
+                            onChange={handleSearchChange}
+                            onFocus={() => searchTerm.length >= 3 && setIsSearchOpen(true)}
+                            style={{ width: 280 }} 
+                        />
+                    </Popover.Target>
+                    
+                    <Popover.Dropdown p={0} w={{ base: '90vw', sm: 350, lg: 500 }}>
+                        <ScrollArea.Autosize mah={400} px="md" py="xs">
+                            {/* Loading Spinner */}
+                            {/*{isSearching && <Center p="xl"><Loader size="md" /></Center>}*/}
+                            {isSearching && (
+                                 <Box w={{ base: '90vw', sm: 350, lg: 500 }} maw="90vw" display="flex" style={{alignItems: 'center', justifyContent: 'center'}}>
+                                     <Loader size="md" />
+                                 </Box>
+                            )}
+                            {/* Rendering Results */}
+                            {!isSearching && searchResults.length > 0 && searchResults.map((item, index) => (
+                                <Box 
+                                    key={index} 
+                                    p="xs" 
+                                    component="a"
+                                    href={item.url}
+                                    onClick={() => setIsSearchOpen(false)}
+                                    style={{ 
+                                        display: 'block', 
+                                        borderBottom: index < searchResults.length - 1 ? '1px solid var(--mantine-color-gray-1)' : 'none', 
+                                        cursor: 'pointer' 
+                                    }}
+                                     w={{ base: '90vw', sm: 350, lg: 500 }} maw="90vw" 
+                                >
+                                    <Text size="sm" c="blue.5" fw={700}>
+                                        {item.sec_title}
+                                    </Text>
+                                    <Text fz="xs" c="dimmed" dangerouslySetInnerHTML={{ __html: item.excerpt_html }} />
+                                </Box>
+                            ))}
+
+                            {/* No results message */}
+                            {!isSearching && searchResults.length === 0 && searchTerm.length >= 3 && (
+                                 <Center p="xl"  w={{ base: '90vw', sm: 350, lg: 500 }} maw="90vw" ><Text c="dimmed">No results for "{searchTerm}".</Text></Center>
+                            )}
+                            
+                            {/* Default prompt/small instruction (optional) */}
+                            {!isSearching && searchTerm.length < 3 && (
+                                <Center p="sm"  w={{ base: '90vw', sm: 350, lg: 500 }} maw="90vw" ><Text fz="xs" c="dimmed">Type at least 3 characters to search.</Text></Center>
+                            )}
+                            
+                        </ScrollArea.Autosize>
+                    </Popover.Dropdown>
+                </Popover>
+
                 <ColorSchemeControl />
+                
+            </Group>
               
             </Group>
         </Group>
@@ -228,7 +358,7 @@ const AppRoot: React.FC = () => {
         <ScrollArea h="100%" style={{ paddingRight: '10px' }}>
             {data.doc_sections.map((section: Section, index: number) => {
                 const slug = section.title.toLowerCase().replace(/\s+/g, '-');
-                const path = `?doc_id=${docId}&section=${slug}`;
+                const path = `?doc_id=${currentDocId}&section=${slug}`;
                 
                 if (section.type === 'separator') {
                     // return <Text key={index} my="sm" fw={700} c="dimmed" tt="uppercase" fz="xs">{section.title}</Text>;

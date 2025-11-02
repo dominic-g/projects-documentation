@@ -32,13 +32,14 @@ function pd_enqueue_frontend_app() {
 
             wp_enqueue_script( $handle, PD_ASSETS_URL . 'doc-bundle.js', array( 'wp-element', 'react' ), filemtime(PD_ASSETS_DIR . 'doc-bundle.js'), true );
 
+            $rest_search_url = rest_url( 'pd/v1/search-doc' );
+
             wp_localize_script( $handle, 'PD_GLOBAL_CONFIG', array(
                 'docId' => $doc_id, 
                 'restBase' => trailingslashit( home_url( '/wp-json/wp/v2/' ) ),
                 'basePath' => trailingslashit( get_permalink( $queried_id ) ),
+                'searchEndpoint' => esc_url_raw( $rest_search_url ),
             ));
-
-
 
             $mount_script = "
                 (function() {
