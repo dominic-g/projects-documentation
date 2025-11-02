@@ -30,7 +30,8 @@ export function Welcome({ titleBase, tagline, overview, buttonText, buttonLink, 
   const FinalIcon = IconComponent || IconExternalLink; 
   return (
     <>
-      <Title maw="90vw" mx="auto" className={classes.title} ta="center">
+      <Title maw="90vw" mx="auto" className={classes.title} ta="center" 
+          id="depedenciesAnimate" style={{ fontSize: '5em'}}>
         {titleBase}
         <TextAnimate
           animate="in"
@@ -39,12 +40,14 @@ export function Welcome({ titleBase, tagline, overview, buttonText, buttonLink, 
           variant="gradient"
           component="span"
           segmentDelay={0.2}
+          loop={true}
           duration={2}
           animation="scale"
           animateProps={{
             scaleAmount: 3,
           }}
           gradient={{ from: 'pink', to: 'yellow' }}
+          style={{ fontSize: '0.75em'}}
         >
           {tagline}
         </TextAnimate>
@@ -71,7 +74,7 @@ export function Welcome({ titleBase, tagline, overview, buttonText, buttonLink, 
         </Button>
       </Center>
 
-      <Paper shadow="xl" p={8} mih={300} my={32} bg="dark.9" mx="auto" radius={8}>
+      <Paper shadow="xl" p={8} mih={300} maw={750} my={32} bg="dark.9" mx="auto" radius={8}>
         <TextAnimate.Typewriter
           inherit
           fz={11}
@@ -83,8 +86,10 @@ export function Welcome({ titleBase, tagline, overview, buttonText, buttonLink, 
           value={finalDependencyLines}
         />
       </Paper>
+      <Content marqueeFeatures={marqueeFeatures}/> 
+      <Center pb="4em" >
 
-      <Content marqueeFeatures={marqueeFeatures} /> 
+      </Center>
     </>
   );
 }

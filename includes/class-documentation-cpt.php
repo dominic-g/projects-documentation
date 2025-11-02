@@ -23,6 +23,24 @@ class Projects_Documentation_CPT {
 	 * Register the 'project-doc' Custom Post Type.
 	 */
 	public function register_cpt() {
+
+		add_rewrite_tag('%pd_doc_id%', '([0-9]+)');
+	    add_rewrite_tag('%pd_section_slug%', '([^/]+)');
+
+	    // This rule routes docs-viewer/ID/SECTION to the docs-viewer page template.
+	    add_rewrite_rule(
+	        'docs-viewer/([0-9]+)/([^/]+)/?$',
+	        'index.php?pagename=docs-viewer&pd_doc_id=$matches[1]&pd_section_slug=$matches[2]',
+	        'top'
+	    );
+	    
+	    // Rule for only /ID/
+	    add_rewrite_rule(
+	        'docs-viewer/([0-9]+)/?$',
+	        'index.php?pagename=docs-viewer&pd_doc_id=$matches[1]',
+	        'top'
+	    );
+	    
 		$labels = array(
 			'name'          => _x( 'Project Docs', 'Post type general name', 'pd-textdomain' ),
 			'singular_name' => _x( 'Project Doc', 'Post type singular name', 'pd-textdomain' ),

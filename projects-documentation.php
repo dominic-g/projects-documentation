@@ -86,6 +86,21 @@ function pd_plugin_activate() {
             update_post_meta( $viewer_page_id, '_wp_page_template', 'default' ); 
         }
     }
+
+    if ( ! get_option('pd_default_doc_id') ) {
+        // Find one published project-doc CPT or set to 0.
+        $default_doc = get_posts(array(
+            'post_type' => 'project-doc',
+            'posts_per_page' => 1,
+            'post_status' => 'publish',
+        ));
+        
+        if (!empty($default_doc)) {
+            update_option('pd_default_doc_id', $default_doc[0]->ID);
+        } else {
+             update_option('pd_default_doc_id', 0);
+        }
+    }
     flush_rewrite_rules();
 }
 

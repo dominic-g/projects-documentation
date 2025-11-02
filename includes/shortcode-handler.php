@@ -63,11 +63,15 @@ function pd_documentation_link_handler( $atts ) {
 	    return '<!-- Error: Docs Viewer Page not found. -->';
 	}
 
-	// Construct the final link URL: /docs-viewer/?doc_id=123
-	$link_url = add_query_arg( array(
-		'doc_id' => $doc_post->ID,
-	), get_permalink( $viewer_page->ID ) );
+	// // Construct the final link URL: /docs-viewer/?doc_id=123
+	// $link_url = add_query_arg( array(
+	// 	'doc_id' => $doc_post->ID,
+	// ), get_permalink( $viewer_page->ID ) );
 
+	$link_slug = '';
+	$viewer_url = get_permalink( $viewer_page->ID );
+	$has_slash = trailingslashit($viewer_url) === $viewer_url;
+	$link_url = $viewer_url . $doc_post->ID . (empty($link_slug) ? '/' : '/' . $link_slug . '/');
 	
 	return sprintf(
 		'<a href="%s" class="%s">%s</a>',

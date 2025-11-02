@@ -21,6 +21,45 @@
 
 @layer components, mantine, nextra, overwrite;
 
-#wpadminbar{
+#wpadminbar.donotshow{
   display: none;
 }
+ /* purgecss start ignore */
+.mantine-Typewriter-root p {
+  width: 100%;
+}
+.mantine-Typewriter-root .mantine-Stack-root{
+  width: 100%;
+}
+a{
+  color: var(--mantine-color-anchor);
+  text-decoration: none;
+  appearance: none;
+  border: none;
+  display: inline;
+  padding: 0;
+  margin: 0;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+
+.mantine-AppShell-header,
+.mantine-AppShell-footer {
+    position: relative !important; 
+    left: auto !important;
+    right: auto !important;
+    
+    top: 0 !important; 
+    bottom: auto !important; 
+
+    z-index: 1;
+    width: 100vw;
+}
+
+.mantine-AppShell-main {
+    padding-top: var(--mantine-spacing-md); 
+    min-height: auto;
+}
+
+/* purgecss end ignore */

@@ -4,6 +4,15 @@
   font-weight: 900;
   letter-spacing: rem(-2px);
 
+  .mantine-Typewriter-root{
+    background: red;
+  }
+  .mantine-Typewriter-root p{
+    width: 100%;
+  }
+
+ 
+  
   @media (max-width: $mantine-breakpoint-md) {
     font-size: rem(50px);
   }

@@ -9,7 +9,7 @@ export const Content = ({ marqueeFeatures }: ContentProps) => {
   return (
     <>
       <Divider my="md" />
-      <Stack align="center" my={32}>
+      <Stack align="center" my={32} maw={900}>
         <Title order={2} ta="center">
           Features
         </Title>
@@ -19,26 +19,15 @@ export const Content = ({ marqueeFeatures }: ContentProps) => {
             <Button
               key={index}
               size="xl"
-              // The original component had hardcoded links; for a WP-driven app,
-              // we just render the feature name. If links are needed, you'd add a link meta field.
-              // For now, let's treat them as static buttons.
               component="a" 
-              href="#" // Placeholder link
+              href="#"
               target="_blank"
+              style={{ pointerEvents: "none" }} 
             >
               {feature}
             </Button>
           ))}
         </Marquee>
-
-        {/* <TextAnimate.Typewriter
-          multiline
-          value={[
-            'Hello, World! Mantine Typewriter component',
-            'That was a long time ago',
-            'But it was fun',
-          ]}
-        /> */}
       </Stack>
     </>
   );
