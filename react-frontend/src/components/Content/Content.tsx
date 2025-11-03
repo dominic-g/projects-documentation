@@ -9,7 +9,7 @@ export const Content = ({ marqueeFeatures }: ContentProps) => {
   return (
     <>
       <Divider my="md" />
-      <Stack align="center" my={32} maw={900}>
+      <Stack align="center" my={32} maw={{base: '95vw', lg: 900, xl: 1200}}>
         <Title order={2} ta="center">
           Features
         </Title>

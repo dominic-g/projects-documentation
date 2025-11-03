@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { MantineProvider, Loader, Center, AppShell, NavLink, Group, Text, TextInput, ScrollArea, Title, Divider, Box, Popover, Burger, ActionIcon  } from '@mantine/core'; 
-import { IconChevronRight, IconSearch, IconBook  } from '@tabler/icons-react';
+import { MantineProvider, Loader, Center, AppShell, NavLink, Group, Flex, Text, TextInput, ScrollArea, Title, Divider, Box, Popover, ActionIcon } from '@mantine/core'; 
+import { IconChevronRight, IconSearch, IconBook, IconMenu2, IconHome  } from '@tabler/icons-react';
 import { useDebouncedCallback } from '@mantine/hooks';
 import axios from 'axios';
 import { theme } from './theme';
@@ -13,6 +13,9 @@ import { Logo } from './components/Logo/Logo';
 // import DocPage, { type DocData, type Section } from './DocPage';
 import DocPage from './DocPage'; 
 import type { DocData, Section } from './DocPage';
+// import { useMantineTheme, type MantineStyleProp } from '@mantine/core';
+
+
 
 const MOCK_DOC_DATA = {
     project_title: "Mantine Next.js +",
@@ -101,6 +104,7 @@ const AppRoot: React.FC = () => {
 
   const [navOpened, setNavOpened] = useState(false);
   const [asideOpened, setAsideOpened] = useState(false);
+
 
 
   const fetchDocumentation = useCallback(async () => {
@@ -256,38 +260,41 @@ const AppRoot: React.FC = () => {
 
   return (
     <AppShell
-        header={{ height: 60 }}
-        // navbar={{ width: isWelcomePage ? 0 : 300, breakpoint: 'md' }} 
-        // aside={{ width: isWelcomePage ? 0 : 250, breakpoint: 'lg' }} 
+        header={{ height: { base: 120, sm: 60 } }}
         padding={isWelcomePage ? 0 : "md"}
         navbar={{ 
             width: isWelcomePage ? 0 : 300, 
             breakpoint: 'lg',
             collapsed: isNavCollapsed
-            // collapsed: { mobile: !navOpened, desktop: false }
         }} 
         aside={{ 
             width: isWelcomePage ? 0 : 250, 
             breakpoint: 'lg', 
             collapsed: isAsideCollapsed
-            // collapsed: { mobile: !asideOpened, desktop: false } 
         }} 
-        // padding="md"
-        style={{ transition: 'all 0.3s' }}
+        maw="100vw"
+        footer= {{ height: 60}}
+        style={{ transition: 'all 0.3s', position: 'relative', overflowX: 'hidden'}}
       >
       <AppShell.Header >
-        <Group h="100%" px="md" justify="space-between" wrap="nowrap">
+        <Flex 
+            h="100%" 
+            px="md" 
+            wrap="nowrap"
+            justify={{ base: 'space-around', sm: 'space-between' }}
+            direction={{ base: 'column', sm: 'row' }}
+        >
             {/* LEFT SIDE: Logo & Project Title */}
             <Group 
                 align="center" 
                 gap="xs" 
                 style={{ 
                     flexShrink: 1, 
-                    width: '50%',
-                    ['@media (max-width: 768px)']: {
-                       width: '35%', 
-                    },
+                    flexWrap: "nowrap", 
+                    overflow: "hidden"
                 }}
+                w={{ base: '100%', sm: '35%', md: '50%' }}
+
             >
                 <Logo logoUrl={data.logo_url} /> 
                 <Text 
@@ -295,27 +302,35 @@ const AppRoot: React.FC = () => {
                     fw={800} 
                     c="blue"
                     style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}
+                    // visibleFrom="sm" //hidden from 767 and below visible to 768p x and up
                 >
                     {data.project_title}
                 </Text>
 
                 {(numericalDocId > 0) && (!isWelcomePage) && (
-                    <Burger 
-                        opened={navOpened} 
+                    <ActionIcon 
                         onClick={() => setNavOpened((o) => !o)} 
+                        variant="default"
+                        size="md"
                         style={{
+                            marginLeft: 'auto',
                             ['@media (min-width: 1200px)']: { display: 'none' } 
                         }}
-                    />
+                        hiddenFrom="lg" //hidden from screen 1200px and abv
+                    >
+                        <IconMenu2 size={18} />
+                    </ActionIcon>
                 )}
                 {(numericalDocId > 0) && (!isWelcomePage) && (
                     <ActionIcon 
                         onClick={() => setAsideOpened((o) => !o)} 
                         variant="default"
-                        size="lg"
+                        size="md"
                         style={{
+
                             ['@media (min-width: 1200px)']: { display: 'none' } 
                         }}
+                        hiddenFrom="lg" //hidden from screen 1200px and abv
                     >
                         <IconChevronRight size={18} />
                     </ActionIcon>
@@ -323,28 +338,45 @@ const AppRoot: React.FC = () => {
             </Group>
 
             {/* RIGHT SIDE: Controls */}
-             <Group>
-                <Group
+             <Group
+                w={{ base: '100%', sm: '65%', md: '50%' }} 
+             >
+                <Flex
                     style={{
                          flexShrink: 0,
                          flexGrow: 1,
-                         justifyContent: 'flex-end',
-                         width: '50%',
-                         ['@media (max-width: 768px)']: {
-                             width: '65%',
-                         },
+                         // justifyContent: 'flex-end',
                          overflow: 'hidden',
                          whiteSpace: 'nowrap',
-                    }}
+                         flexWrap: "nowrap",
+                         // gap: 10,
+                     }}
+                     justify={{ base: 'space-around', sm: 'flex-end' }}
+                     gap={{ base: '5px', sm: '10px' }}
                 >
-
+                    <NavLink 
+                        component="a" 
+                        href={currentDocBaseUrl} 
+                        label={
+                            <Group gap={5} style={{ whiteSpace: 'nowrap', alignItems: 'normal' }}>
+                                <IconHome size={18} />
+                                <Box visibleFrom="lg"> 
+                                    <Text component="span" size="sm">Home</Text>
+                                </Box>
+                            </Group>
+                        }
+                        p={4}
+                        c="blue.4"
+                        fw={600}
+                        style={{ width: 'auto'}}
+                    />
 
                     {(numericalDocId > 0) && (
                         <NavLink 
                             component="a" 
                             href={currentDocBaseUrl + defaultSectionSlug} 
                             label={
-                                <Group gap={5} style={{ whiteSpace: 'nowrap' }}>
+                                <Group gap={5} style={{ whiteSpace: 'nowrap', alignItems: 'normal' }}>
                                     <IconBook size={18} />
                                     <Box visibleFrom="lg"> 
                                         <Text component="span" size="sm">Documentation</Text>
@@ -432,20 +464,47 @@ const AppRoot: React.FC = () => {
 
                     <ColorSchemeControl />
                 
-                </Group>
+                </Flex>
               
             </Group>
-        </Group>
+        </Flex>
       </AppShell.Header>
 
       <AppShell.Navbar 
         p={isWelcomePage ? 0 : "md"} 
-        w={{ base: isWelcomePage ? 0 : '50%', md: 300, lg: 300 }}
+        w={{ base: isWelcomePage ? 0 : '75%', sm: 300 }}
         maw={isWelcomePage ? 0 : 300}
-        // collapsed={!isWelcomePage ? { mobile: !navOpened, desktop: false } : undefined}
-        style={{ transition: 'all 0.3s ease', borderRight: isWelcomePage ? 'none' : undefined }}
+        mah={{ base: isWelcomePage ? 0 : "calc(100dvh - var(--app-shell-header-offset, 0rem))", lg: isWelcomePage ? 0 : "calc(100% - var(--mantine-header-height, 60px) - var(--mantine-footer-height, 60px))"}}
+        h={{ base: isWelcomePage ? 0 : "100%", lg: isWelcomePage ? 0 : "100%"}}
+        style={{ transition: 'all 0.3s ease', borderRight: isWelcomePage ? 'none' : undefined, position: 'absolute' }}
       >
         {/* Left Sidebar: Section Navigation */}
+        {/*{(numericalDocId > 0) && (!isWelcomePage) && (
+            <Box 
+                pos="absolute"
+                top={10}
+                right={10}
+                style={{
+                    zIndex: 100, 
+                    transition: 'opacity 0.2s ease', 
+                    ['@media (min-width: 1200px)']: { display: 'none !important' } 
+                }}
+                hiddenFrom="lg" //hidden from screen 1200px and abv
+            >
+                <ActionIcon 
+                    onClick={() => setNavOpened(false)} 
+                    variant="transparent"
+                    size="md"
+                    radius="xl"
+                    style={{
+                        backgroundColor: 'rgba(250,250,250,0.9)',
+                        border: '1px solid rgba(30,30,30,0.5)',
+                    }}
+                >
+                    <IconX size={20} />
+                </ActionIcon>
+            </Box>
+        )}*/}
         <ScrollArea h="100%" style={{ paddingRight: '10px' }}>
             {data.doc_sections.map((section: Section, index: number) => {
                 // const slug = section.title.toLowerCase().replace(/\s+/g, '-');
@@ -478,11 +537,41 @@ const AppRoot: React.FC = () => {
 
       <AppShell.Aside 
         p={isWelcomePage ? 0 : "md"} 
-        w={{ base: isWelcomePage ? 0 : '50%', md: 300, lg: 300 }}
+        w={{ base: isWelcomePage ? 0 : '60%', sm: 300 }}
         maw={isWelcomePage ? 0 : 300}
+        mah={{ base: isWelcomePage ? 0 : "calc(100dvh - var(--app-shell-header-offset, 0rem))", lg: isWelcomePage ? 0 : "calc(100% - var(--mantine-header-height, 60px) - var(--mantine-footer-height, 60px))"}}
+        h={{ base: isWelcomePage ? 0 : "100%", lg: isWelcomePage ? 0 : "100%"}}
         // collapsed={!isWelcomePage ? { mobile: !navOpened, desktop: false } : undefined}
-        style={{ transition: 'all 0.3s ease', borderRight: isWelcomePage ? 'none' : undefined }}
+        style={{ transition: 'all 0.3s ease', borderRight: isWelcomePage ? 'none' : undefined, position: 'absolute' }}
       >
+
+        {/*{(numericalDocId > 0) && (!isWelcomePage) && (
+            <Box 
+                pos="absolute"
+                top={10}
+                left={10}
+                style={{
+                    zIndex: 100, 
+                    transition: 'opacity 0.2s ease', 
+                    ['@media (min-width: 1200px)']: { display: 'none !important' } 
+                }}
+                hiddenFrom="lg" //hidden from screen 1200px and abv
+
+            >
+                <ActionIcon 
+                    onClick={() => setAsideOpened(false)} 
+                    variant="transparent"
+                    size="md"
+                    radius="xl"
+                    style={{
+                        backgroundColor: 'rgba(250,250,250,0.9)',
+                        border: '1px solid rgba(30,30,30,0.5)',
+                    }}
+                >
+                    <IconX size={20} />
+                </ActionIcon>
+            </Box>
+        )}*/}
         <ScrollArea h="100%">
           <Title order={4} mb="md">Table of Contents</Title>
           {toc.length === 0 && <Text c="dimmed">No headings found for this section.</Text>}
@@ -501,10 +590,13 @@ const AppRoot: React.FC = () => {
         </ScrollArea>
       </AppShell.Aside>
 
-      <AppShell.Main pb="md">
+      <AppShell.Main 
+        pb="md"
+        mih={{ base: "calc(100dvh - var(--mantine-header-height, 120px) - var(--mantine-footer-height, 60px))", sm: "calc(100dvh - var(--mantine-header-height, 60px) - var(--mantine-footer-height, 60px))"}}
+      >
         {/*{renderMainContent()}*/}
         <Box 
-            px={isWelcomePage ? 0 : 'md'}
+            px={{base: 0, md: isWelcomePage ? 0 : 'md'}}
             maw={isWelcomePage ? '100vw' : 'auto'}
             // h={isWelcomePage ? 'calc(100vh - var(--mantine-header-height, 60px) - var(--mantine-footer-height, 0px))' : 'auto'}
 
@@ -517,8 +609,8 @@ const AppRoot: React.FC = () => {
         </Box>
       </AppShell.Main>
       
-      <AppShell.Footer p="md" style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-        <div dangerouslySetInnerHTML={{ __html: data.footer_html }} />
+      <AppShell.Footer p="md" style={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: "nowrap", overflow: "hidden"}}>
+        <div style={{textAlign: 'center'}} dangerouslySetInnerHTML={{ __html: data.footer_html }} />
       </AppShell.Footer>
     </AppShell>
   );

@@ -12,13 +12,13 @@ const FileTreeBase = ({ children }: any) => {
 
   return (
     <Box
-      p="sm"
+      p={{base: '0.8rem 0', md: 'sm'}}
+      m={{base: '2rem 0', md: '2rem 1rem'}}
       style={{
         backgroundColor: isDark ? "rgb(61, 63, 66)" : "rgb(158, 158, 162)",
         borderLeft: `1.2em solid ${isDark ? theme.colors.gray[5] : theme.colors.dark[5]}`,
         borderRadius: 6,
         fontFamily: "monospace",
-        margin: "2rem 1rem",
         transition: "background-color 0.3s ease, border-color 0.3s ease",
       }}
     >
@@ -46,7 +46,9 @@ const LabelTag = ({
       display: "inline-block",
       borderRadius: "5px",
       marginLeft: "0.5rem",
+      fontSize: "80%",
       fontWeight: 600,
+      fontStyle: 'italic',
       transition: "transform 0.2s ease, box-shadow 0.2s ease",
     }}
     onMouseEnter={(e) => {
@@ -96,7 +98,7 @@ const FileTreeFolder = ({
   const normalChildren = childrenArray.filter((child) => !child.props?.label);
 
   return (
-    <Box ml="md" style={{ fontWeight: "bold", margin: "4px 0" }}>
+    <Box ml={{base: "4px", md: "md"}} style={{ fontWeight: "bold", margin: "4px 0" }}>
       <Box
         onClick={() => hasChildren && setOpen(!open)}
         style={{
@@ -127,9 +129,9 @@ const FileTreeFolder = ({
           </>
         )}
         {open ? (
-          <IconFolderOpen size={16} stroke={1.7} />
+          <IconFolderOpen size={16} stroke={1.7} style={{width: "1.2em", height: "1.2em",}} />
         ) : (
-          <IconFolder size={16} stroke={1.7} />
+          <IconFolder size={16} stroke={1.7} style={{width: "1.2em", height: "1.2em",}} />
         )}
         <Text component="span">{name}</Text>
 
@@ -165,7 +167,7 @@ const FileTreeFile = ({ name, children }: { name: string | React.ReactNode; chil
       marginBottom: "4px",
     }}
   >
-    <IconFile size={14} stroke={1.7} />
+    <IconFile size={14} stroke={1.7}  style={{width: "1.2em", height: "1.2em",}}/>
     <Text component="span" style={{ fontStyle: "italic" }}>
       {name}
     </Text>

@@ -42,6 +42,18 @@ a{
   background-color: transparent;
   cursor: pointer;
 }
+main .mantine-ScrollArea-content h1,
+main .mantine-ScrollArea-content h2,
+main .mantine-ScrollArea-content h3,
+main .mantine-ScrollArea-content h4,
+main .mantine-ScrollArea-content h5,
+main .mantine-ScrollArea-content h6{
+  margin-top: 0.25rem !important;
+  padding-bottom: 0.25rem !important;
+}
+main .mantine-ScrollArea-content p{
+  margin-top: 1.2em !important;
+}
 
 
 .mantine-AppShell-header,

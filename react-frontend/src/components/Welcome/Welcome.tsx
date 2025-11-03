@@ -31,7 +31,7 @@ export function Welcome({ titleBase, tagline, overview, buttonText, buttonLink, 
   return (
     <>
       <Title maw="90vw" mx="auto" className={classes.title} ta="center" 
-          id="depedenciesAnimate" style={{ fontSize: '5em'}}>
+          id="depedenciesAnimate" fs={{base: '3em', md: '5em'}} pt="1.2em">
         {titleBase}
         <TextAnimate
           animate="in"
@@ -86,7 +86,9 @@ export function Welcome({ titleBase, tagline, overview, buttonText, buttonLink, 
           value={finalDependencyLines}
         />
       </Paper>
+      <Center>
       <Content marqueeFeatures={marqueeFeatures}/> 
+      </Center>
       <Center pb="4em" >
 
       </Center>
