@@ -1,4 +1,3 @@
-// import * as Mantine from "@mantine/core";
 import React, { useState } from "react";
 import type { ReactNode, ReactElement } from "react";
 import { Box, Text, useMantineTheme, useComputedColorScheme } from "@mantine/core";

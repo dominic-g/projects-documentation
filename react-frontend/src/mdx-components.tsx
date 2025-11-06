@@ -18,6 +18,7 @@ import {
 } from '@mantine/core';
 
 import { FileTreeLabel } from './components/FileTreeLabel/FileTreeLabel'; // Ensure path is correct
+import { MarqueeFeatures, TypewriterComponent, AnimatedTextComponent, ActionButton } from './components/Content/Content'; 
 
 
 const defaultMantineComponents = {
@@ -30,6 +31,10 @@ const defaultMantineComponents = {
   
   // Custom components (e.g., FileTreeLabel usage)
   FileTreeLabel: FileTreeLabel,
+  MarqueeFeatures: MarqueeFeatures, 
+  Typewriter: TypewriterComponent,
+  AnimatedText: AnimatedTextComponent,
+  ActionButton: ActionButton,
 
   // Mantine Component Mappings (Required for MDX to find components like <Button>)
   Button: Button,

@@ -14,7 +14,7 @@ import { Logo } from './components/Logo/Logo';
 import DocPage from './DocPage'; 
 import type { DocData, Section } from './DocPage';
 // import { useMantineTheme, type MantineStyleProp } from '@mantine/core';
-
+// import DominicLogo from '@dominic_n/react-dominic-logo-animation'
 
 
 const MOCK_DOC_DATA = {
@@ -296,7 +296,8 @@ const AppRoot: React.FC = () => {
                 w={{ base: '100%', sm: '35%', md: '50%' }}
 
             >
-                <Logo logoUrl={data.logo_url} /> 
+                {/*<Logo logoUrl={data.logo_url} homeUrl = {currentDocBaseUrl} /> */}
+                <Logo logoUrl={data.logo_url}/> 
                 <Text 
                     size="lg" 
                     fw={800} 
@@ -306,6 +307,7 @@ const AppRoot: React.FC = () => {
                 >
                     {data.project_title}
                 </Text>
+                {/*<DominicLogo />*/}
 
                 {(numericalDocId > 0) && (!isWelcomePage) && (
                     <ActionIcon 

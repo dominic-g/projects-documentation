@@ -4,7 +4,8 @@ import { TextAnimate } from '@gfazioli/mantine-text-animate';
 import { IconExternalLink } from '@tabler/icons-react';
 import { getIconComponent } from '@/utils/getIconComponent';
 import { Button, Center, Paper, Text, Title } from '@mantine/core';
-import { Content } from '../Content/Content';
+// import { Content } from '../Content/Content';
+import { MarqueeFeatures } from '../Content/Content';
 import classes from './Welcome.module.css';
 
 
@@ -28,6 +29,9 @@ export function Welcome({ titleBase, tagline, overview, buttonText, buttonLink, 
 
   const IconComponent = getIconComponent(buttonIcon);
   const FinalIcon = IconComponent || IconExternalLink; 
+  const marqueedata = JSON.stringify(
+    marqueeFeatures.map((feature) => ({ text: feature }))
+  );
   return (
     <>
       <Title maw="90vw" mx="auto" className={classes.title} ta="center" 
@@ -61,8 +65,8 @@ export function Welcome({ titleBase, tagline, overview, buttonText, buttonLink, 
         <Button
           href={buttonLink}
           component="a"
-          rightSection={<IconExternalLink />}
-          leftSection={<FinalIcon />}
+          rightSection={<IconExternalLink size={24}/>}
+          leftSection={<FinalIcon size={24}/>}
           variant="outline"
           px={32}
           radius={256}
@@ -87,7 +91,8 @@ export function Welcome({ titleBase, tagline, overview, buttonText, buttonLink, 
         />
       </Paper>
       <Center>
-      <Content marqueeFeatures={marqueeFeatures}/> 
+      {/*<Content marqueeFeatures={marqueeFeatures}/> */}
+      <MarqueeFeatures title="Features"  data={marqueedata} /> 
       </Center>
       <Center pb="4em" >
 

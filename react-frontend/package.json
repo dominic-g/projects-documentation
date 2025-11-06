@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@dominic_n/react-dominic-logo-animation": "^1.0.0",
     "@gfazioli/mantine-marquee": "^2.6.2",
     "@gfazioli/mantine-text-animate": "^2.3.2",
     "@mantine/core": "^8.3.5",
