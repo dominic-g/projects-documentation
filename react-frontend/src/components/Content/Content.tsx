@@ -11,20 +11,18 @@ import { getIconComponent } from '@/utils/getIconComponent'; // Utility for dyna
 
 
 // --- UTILITIES & TYPE CHECKING (Move to a shared utils file eventually) ---
-// Note: This logic now lives entirely within Content.tsx to keep it self-contained.
 type MantineSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 type AlignType = 'left' | 'center' | 'right';
 type DisplayType = 'block' | 'inline';
 export const ButtonDisplay: readonly DisplayType[] = ['block', 'inline'] as const;
 type MarqueeItem = {
-    text: string; // mandatory
+    text: string;
     href?: string;
     target?: string;
-    size?: string; // MantineSize
-    icon?: string; // Icon name string
-    color?: string; // Text/Border color
-    bg?: string; // Background color
-    // NOTE: Dark mode colors not implemented here for brevity; same structure applies if needed.
+    size?: string;
+    icon?: string;
+    color?: string;
+    bg?: string;
 };
 
 const validateEnum = (val: any, allowedValues: readonly string[], fallback: string): string => {
@@ -40,7 +38,6 @@ const TextAnimateAnimate = ['in', 'out', 'in-out'] as const;
 const TextAnimateBy = ['character', 'word', 'line'] as const;
 
 
-// Custom Hook for parsing the complex props
 const useJsonProps = <T extends any>(dataString: string | undefined): T[] => {
     if (!dataString) return [];
     try {

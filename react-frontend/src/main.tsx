@@ -4,6 +4,8 @@ import App from './App.tsx'
 import './global.css'; 
 
 import '@mantine/core/styles.css'; 
+import '@mantine/carousel/styles.css';
+import '@mantine/charts/styles.css';
 import '@gfazioli/mantine-marquee/styles.layer.css';
 import '@gfazioli/mantine-text-animate/styles.layer.css';
 

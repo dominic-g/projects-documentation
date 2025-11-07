@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import remarkGfm from 'remark-gfm'; 
 import { Text, ScrollArea, Center } from '@mantine/core'; 
 import * as Mantine from '@mantine/core'; 
 import { compile, run } from '@mdx-js/mdx';
@@ -78,6 +79,7 @@ const DocPage: React.FC<DocPageProps> = ({ mdxContent, onTocChange }) => {
         const compiled = await compile(mdxContent, {
           outputFormat: 'function-body',
           providerImportSource: '@mdx-js/react',
+          remarkPlugins: [remarkGfm], 
         });
         
         const { default: Content } = await run(compiled, {
@@ -88,28 +90,39 @@ const DocPage: React.FC<DocPageProps> = ({ mdxContent, onTocChange }) => {
         
         if (!isMounted) return;
         
-        /*const newToc: TocItem[] = [];
-        const headings = mdxContent.matchAll(/^(#{2,4})\s+(.+)/gm);
-        for (const match of headings) {
-          const level = match[1].length;
-          const text = match[2];
-          const slug = text
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '');
-          newToc.push({ id: slug, text, level });
-        }*/
 
         setCompiledMdx(<Content components={components} />);
 
         // onTocChange(newToc);
 
       } catch (error) {
-        if (!isMounted) return; // Cleanup check
-        console.error('MDX run API Failed:', error);
+        if (!isMounted) return;
+        // console.error('MDX run API Failed:', error);
+        // setCompiledMdx(
+        //   <Text color="red">CRITICAL: MDX Run API Failed. Final execution error. Check console.</Text>
+        // );
+        
+        const errorMessage = error instanceof Error ? error.message : 'Unknown Parsing Error';
+        
+        console.groupCollapsed('🚨 CRITICAL MDX RENDER FAILURE');
+        console.error('ERROR MESSAGE:', errorMessage);
+        console.warn('RAW CONTENT (Source of Error):', mdxContent);
+        // Display the specific section's error visually:
         setCompiledMdx(
-          <Text color="red">CRITICAL: MDX Run API Failed. Final execution error. Check console.</Text>
+            <Mantine.Alert
+                title="MDX Rendering Error"
+                color="red"
+                mt="xl"
+            >
+                The documentation could not be rendered due to a syntax issue. 
+                <Mantine.List>
+                    <Mantine.List.Item>Check the WordPress text field for malformed JSX/HTML or misplaced Markdown tables.</Mantine.List.Item>
+                    <Mantine.List.Item>Error: **{errorMessage}**</Mantine.List.Item>
+                </Mantine.List>
+                <Mantine.Text fz="xs" mt="sm">Consult console for raw content error tracing.</Mantine.Text>
+            </Mantine.Alert>
         );
+        console.groupEnd();
       }
     };
 
