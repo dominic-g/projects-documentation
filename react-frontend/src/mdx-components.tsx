@@ -15,13 +15,13 @@ import {
   Anchor, Button, Code,
   ActionIcon, 
   Text, Title, Divider, Table, Paper,
-  Center, Box, Stack, List, Grid, Flex, SimpleGrid, Space, Container, Group,
+  Center, Box, Stack, List, Grid, Flex, SimpleGrid, Space, Container, Group, Menu, Tabs,
   Alert, Notification, Progress, RingProgress, SemiCircleProgress,
   HoverCard, Overlay, Popover, Tooltip, 
   Accordion, Avatar, BackgroundImage, Badge, Card, ColorSwatch, Indicator, Kbd, NumberFormatter, Spoiler, ThemeIcon, Timeline,
   Blockquote, Highlight, Mark, 
   ScrollArea, Transition, VisuallyHidden, 
-} from '@mantine/core'; //import 48 comp items
+} from '@mantine/core'; //import 49 comp items
 
 import{
   AreaChart, BarChart, LineChart, CompositeChart, DonutChart, PieChart, FunnelChart, RadarChart, ScatterChart, BubbleChart, RadialBarChart, 
@@ -29,6 +29,7 @@ import{
 } from '@mantine/charts'; //imported 13 comp items
 
 import { FileTreeLabel } from './components/FileTreeLabel/FileTreeLabel';
+// import DominicLogo from '@dominic_n/react-dominic-logo-animation';
 //Total 65 imported comp
 // import { MarqueeFeatures, TypewriterComponent, AnimatedTextComponent, ActionButton } from './components/Content/Content'; 
 
@@ -64,9 +65,6 @@ const defaultMantineComponents = {
   ul: (props: any) => <List {...props} />,
   li: (props: any) => <List.Item {...props} />,
   ol: (props: any) => <List type="ordered" {...props} />,
-  // details: ({ children, open, ...props }) => {
-  //   const [summary, ...rest] = React.Children.toArray(children);
-
   details: ({ children, open, ...props }: { children: React.ReactNode, open?: boolean, [key: string]: any }) => {
     const [summary, ...rest] = React.Children.toArray(children) as [React.ReactNode, ...React.ReactNode[]];
     const id = useId();
@@ -140,6 +138,7 @@ const defaultMantineComponents = {
   Paper:  (props: any) => <Paper {...props} />,
   Stack:  (props: any) => <Stack {...props} />,
   Grid:  (props: any) => <Grid {...props} />,
+  GridCol:  (props: any) => <Grid.Col {...props} />,
   Group:  (props: any) => <Group {...props} />,
   Container:  (props: any) => <Container {...props} />,
   Flex:  (props: any) => <Flex {...props} />,
@@ -155,10 +154,15 @@ const defaultMantineComponents = {
   Overlay:  (props: any) => <Overlay {...props} />,
   Popover:  (props: any) => <Popover {...props} />,
   Tooltip:  (props: any) => <Tooltip {...props} />,
+  Menu:  (props: any) => <Menu {...props} />,
+  MenuTarget:  (props: any) => <Menu.Target {...props} />,
+  MenuDropdown:  (props: any) => <Menu.Dropdown {...props} />,
+  MenuItem:  (props: any) => <Menu.Item {...props} />,
+  Tabs:  (props: any) => <Tabs {...props} />,
+  TabsList:  (props: any) => <Tabs.List {...props} />,
+  TabsTab:  (props: any) => <Tabs.Tab {...props} />,
+  TabsPanel:  (props: any) => <Tabs.Panel {...props} />,
   Accordion:  (props: any) => <Accordion {...props} />,
-  // 'Accordion.Item': Accordion.Item,
-  // 'Accordion.Control': Accordion.Control,
-  // 'Accordion.Panel': Accordion.Panel,
   AccordionItem: (props: any) => <Accordion.Item {...props} />,
   AccordionControl: (props: any) => <Accordion.Control {...props} />,
   AccordionPanel: (props: any) => <Accordion.Panel {...props} />,
@@ -166,7 +170,6 @@ const defaultMantineComponents = {
   BackgroundImage:  (props: any) => <BackgroundImage {...props} />,
   Badge:  (props: any) => <Badge {...props} />,
   Card:  (props: any) => <Card {...props} />,
-  // 'Card.Section': CardSection,
   'CardSection': (props: any) => <Card.Section {...props} />,  
   ColorSwatch:  (props: any) => <ColorSwatch {...props} />,
   Indicator:  (props: any) => <Indicator {...props} />,
@@ -178,7 +181,6 @@ const defaultMantineComponents = {
   Blockquote:  (props: any) => <Blockquote {...props} />,
   Highlight:  (props: any) => <Highlight {...props} />,
   List:  (props: any) => <List {...props} />,
-  // 'List.Item': List.Item,
   ListItem: (props: any) => <List.Item {...props} />,
   Mark:  (props: any) => <Mark {...props} />,
   ScrollArea:  (props: any) => <ScrollArea {...props} />,
@@ -200,7 +202,7 @@ const defaultMantineComponents = {
   Marquee:  (props: any) => <Marquee {...props} />,
   TextAnimate: (props: any) => {
     const textContent = getChildrenString(props.children); 
-    
+
     if (!textContent.trim()) {
         console.warn("TextAnimate used without content in MDX.");
         return null; 
@@ -214,30 +216,22 @@ const defaultMantineComponents = {
         </TextAnimate>
     );
   },
-  // TextAnimate: (props: any) => {
-  //   const safeChildren = String(props.children); 
-  //   console.log(safeChildren);
-
-  //   return (
-  //       <TextAnimate 
-  //           {...props} 
-  //       >
-  //           {safeChildren}
-  //       </TextAnimate>
-  //   );
-  // },
-  // TextAnimate:  (props: any) => <TextAnimate {...props} />,
-  // 'TextAnimate.Typewriter': TextAnimate.Typewriter,
-  // 'TextAnimate.TextTicker': TextAnimate.TextTicker,
-  // 'TextAnimate.NumberTicker': TextAnimate.NumberTicker,
-  // 'TextAnimate.Spinner': TextAnimate.Spinner,
   TextAnimateTypewriter: (props: any) => <TextAnimate.Typewriter {...props} />,
   TextAnimateTextTicker: (props: any) => <TextAnimate.TextTicker {...props} />,
   TextAnimateNumberTicker: (props: any) => <TextAnimate.NumberTicker {...props} />,
   TextAnimateSpinner: (props: any) => <TextAnimate.Spinner {...props} />,
 
   FileTreeLabel: FileTreeLabel,
-
+  // dominiclogo: (props: any) => <DominicLogo {...props} />,
+  // DominicLogo: DominicLogo,
+  // DominicLogo: (props: any) => {
+  //    try {
+  //        return <DominicLogo {...props} />;
+  //    } catch (e) {
+  //        console.error("DominicLogo component failed to initialize.", e);
+  //        return <span />;
+  //    }
+  // }
 };
 
 const EXPOSED_ICONS = (() => {

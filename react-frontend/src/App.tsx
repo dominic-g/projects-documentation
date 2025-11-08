@@ -573,33 +573,6 @@ const AppRoot: React.FC = () => {
         style={{ transition: 'all 0.3s ease', borderRight: isWelcomePage ? 'none' : undefined, position: 'absolute' }}
       >
 
-        {/*{(numericalDocId > 0) && (!isWelcomePage) && (
-            <Box 
-                pos="absolute"
-                top={10}
-                left={10}
-                style={{
-                    zIndex: 100, 
-                    transition: 'opacity 0.2s ease', 
-                    ['@media (min-width: 1200px)']: { display: 'none !important' } 
-                }}
-                hiddenFrom="lg" //hidden from screen 1200px and abv
-
-            >
-                <ActionIcon 
-                    onClick={() => setAsideOpened(false)} 
-                    variant="transparent"
-                    size="md"
-                    radius="xl"
-                    style={{
-                        backgroundColor: 'rgba(250,250,250,0.9)',
-                        border: '1px solid rgba(30,30,30,0.5)',
-                    }}
-                >
-                    <IconX size={20} />
-                </ActionIcon>
-            </Box>
-        )}*/}
         <ScrollArea h="100%">
           <Title order={4} mb="md">Table of Contents</Title>
           {toc.length === 0 && <Text c="dimmed">No headings found for this section.</Text>}
@@ -639,6 +612,7 @@ const AppRoot: React.FC = () => {
       
       <AppShell.Footer p="md" style={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: "nowrap", overflow: "hidden"}}>
         <div style={{textAlign: 'center'}} dangerouslySetInnerHTML={{ __html: data.footer_mdx }} />
+        {/*<DominicLogo/>*/}
       </AppShell.Footer>
     </AppShell>
   );

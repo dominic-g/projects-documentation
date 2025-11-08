@@ -118,7 +118,7 @@ class Projects_Documentation_CPT {
 
 	    $footer_mdx = get_post_meta( $post->ID, 'pd_footer_mdx', true );
 	    echo '<p><strong>' . __( 'Footer MDX Content', 'pd-textdomain' ) . '</strong></p>';
-	    echo '<textarea name="pd_footer_mdx" rows="5" style="width:100%; font-family: monospace;">' . esc_textarea( $footer_mdx ) . '</textarea>';
+	    echo '<textarea name="pd_footer_mdx" rows="5" style="width:100%; font-family: monospace;">' . esc_textarea( wp_unslash($footer_mdx) ) . '</textarea>';
 	    echo '<p class="description">Paste simple MDX content for the documentation footer.</p>';
 	}
 
