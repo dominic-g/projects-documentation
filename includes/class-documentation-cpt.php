@@ -72,10 +72,12 @@ class Projects_Documentation_CPT {
 	 * Add all custom meta boxes.
 	 */
 	public function add_meta_boxes() {
+		// add_meta_box( 'pd_welcome_page', __( 'Welcome Page Settings', 'pd-textdomain' ), array( $this, 'render_welcome_box' ), 'project-doc', 'normal', 'high' );
 		add_meta_box( 'pd_welcome_page', __( 'Welcome Page Settings', 'pd-textdomain' ), array( $this, 'render_welcome_box' ), 'project-doc', 'normal', 'high' );
 		add_meta_box( 'pd_content_sections', __( 'Documentation Sections (MDX)', 'pd-textdomain' ), array( $this, 'render_sections_box' ), 'project-doc', 'normal', 'high' );
-		add_meta_box( 'pd_footer_settings', __( 'Footer HTML Content', 'pd-textdomain' ), array( $this, 'render_footer_box' ), 'project-doc', 'normal', 'high' );
+
 		add_meta_box( 'pd_link_post', __( 'Link to Parent Post', 'pd-textdomain' ), array( $this, 'render_link_post_box' ), 'project-doc', 'side', 'high' );
+	    add_meta_box( 'pd_footer_content', __( 'Documentation Footer (MDX)', 'pd-textdomain' ), array( $this, 'render_footer_box' ), 'project-doc', 'normal', 'high' );
 	}
 
 	private function get_tabler_icons_list() {
@@ -95,80 +97,29 @@ class Projects_Documentation_CPT {
 	 * Render the Welcome Page Settings meta box.
 	 */
 	public function render_welcome_box( $post ) {
-		wp_nonce_field( 'pd_save_welcome_meta', 'pd_welcome_nonce' );
+	    wp_nonce_field( 'pd_save_welcome_meta', 'pd_welcome_nonce' );
 
-		// 1. Title
-		$project_title = get_post_meta( $post->ID, 'pd_project_title', true );
-		echo '<p><strong>Project Title</strong></p>';
-		echo '<input type="text" name="pd_project_title" value="' . esc_attr( $project_title ) . '" style="width:100%;" />';
+	    $show_welcome = get_post_meta( $post->ID, 'pd_show_welcome', true );
+	    echo '<p><strong>' . __( 'Show Welcome Screen', 'pd-textdomain' ) . '</strong></p>';
+	    echo '<label><input type="checkbox" name="pd_show_welcome" value="1" ' . checked( $show_welcome, '1', false ) . ' /> ';
+	    echo __( 'Display a dedicated welcome page before the first section.', 'pd-textdomain' ) . '</label>';
 
-		// 2. Tagline
-		$tagline_text = get_post_meta( $post->ID, 'pd_tagline_text', true );
-		echo '<p><strong>Tagline Text</strong></p>';
-		echo '<input type="text" name="pd_tagline_text" value="' . esc_attr( $tagline_text ) . '" style="width:100%;" />';
 
-		// 3. Overview Text
-		$overview_text = get_post_meta( $post->ID, 'pd_overview_text', true );
-		echo '<p><strong>Overview Text</strong></p>';
-		echo '<textarea name="pd_overview_text" rows="4" style="width:100%;">' . esc_textarea( $overview_text ) . '</textarea>';
-
-		// 5. Button
-		$button_text = get_post_meta( $post->ID, 'pd_button_text', true );
-		$button_icon = get_post_meta( $post->ID, 'pd_button_icon', true );
-		$button_link = get_post_meta( $post->ID, 'pd_button_link', true );
-		echo '<p><strong>Button Text</strong></p><input type="text" name="pd_button_text" value="' . esc_attr( $button_text ) . '" />';
-		// echo '<p><strong>Button Icon (e.g., "IconBrandGithub")</strong></p><input type="text" name="pd_button_icon" value="' . esc_attr( $button_icon ) . '" />';
-		echo '<p><strong>Button Icon</strong></p>';
-		echo '<select name="pd_button_icon" id="pd-button-icon-select" style="width:100%;">';
-		echo '<option value="">' . __( '-- Select Icon --', 'pd-textdomain' ) . '</option>';
-		
-		$icons_list = $this->get_tabler_icons_list();
-		foreach ( $icons_list as $icon ) {
-			$selected = selected( $button_icon, $icon, false );
-			echo '<option value="' . esc_attr( $icon ) . '" ' . $selected . '>' . esc_html( $icon ) . '</option>';
-		}
-		
-		echo '</select>';
-		echo '<p class="description">Icon name from Tabler Icons (must be supported in the React code).</p>';
-		echo '<p><strong>Button Link</strong></p><input type="url" name="pd_button_link" value="' . esc_attr( $button_link ) . '" style="width:100%;" />';
-
-		// 6. Dependencies Textarea (for animation)
-		$dependencies = get_post_meta( $post->ID, 'pd_dependencies', true );
-		echo '<p><strong>Dependencies Text (New line for each animated entry)</strong></p>';
-		echo '<textarea name="pd_dependencies" rows="6" style="width:100%;">' . esc_textarea( $dependencies ) . '</textarea>';
-
-		// 7. Marquee Features (Select2 with Tagging)
-		$current_features = get_post_meta( $post->ID, 'pd_marquee_features', true );
-		$current_features = is_array( $current_features ) ? $current_features : array();
-		$global_features = get_option( 'pd_global_features', array() ); // Get all available features
-
-		echo '<p><strong>Marquee Features</strong></p>';
-		echo '<select name="pd_marquee_features[]" id="pd-marquee-features-select" multiple="multiple" style="width:100%;">';
-
-		// Output ALL global features as options, and check if selected for this project
-		$all_features_unique = array_unique( array_merge( $global_features, $current_features ) );
-
-		foreach ( $all_features_unique as $feature ) {
-			$selected = in_array( $feature, $current_features ) ? 'selected="selected"' : '';
-			echo '<option value="' . esc_attr( $feature ) . '" ' . $selected . '>' . esc_html( $feature ) . '</option>';
-		}
-
-		echo '</select>';
-		echo '<button type="button" class="button button-secondary" id="pd-add-feature-button" style="margin-top: 5px;">';
-		echo '<span class="dashicons dashicons-plus" style="line-height: 150%;"></span> Add New Global Feature';
-		echo '</button>';
-		echo '<p class="description">Select features from the list above. Use the button to add a new feature globally.</p>';
+	    $welcome_mdx = get_post_meta( $post->ID, 'pd_welcome_mdx', true );
+	    echo '<p><strong>' . __( 'Welcome Screen MDX Content', 'pd-textdomain' ) . '</strong></p>';
+	    // We use a simple textarea and rely on raw saving below
+	    // echo '<textarea name="pd_welcome_mdx" rows="20" style="width:100%; font-family: monospace;">' . esc_textarea( $welcome_mdx ) . '</textarea>';
+	    echo '<textarea name="pd_welcome_mdx" rows="20" style="width:100%; font-family: monospace;">' . esc_textarea( wp_unslash( $welcome_mdx ) ) . '</textarea>'; 
+	    echo '<p class="description">You can paste any complex Mantine MDX content here (Image, TextAnimate, Buttons, etc.).</p>';
 	}
 
-	/**
-	 * Render the Footer HTML Content meta box.
-	 */
 	public function render_footer_box( $post ) {
-		wp_nonce_field( 'pd_save_footer_meta', 'pd_footer_nonce' );
+	    wp_nonce_field( 'pd_save_footer_meta', 'pd_footer_nonce' );
 
-		$footer_html = get_post_meta( $post->ID, 'pd_footer_html', true );
-		echo '<p><strong>Footer Content (Supports full HTML/Anchors)</strong></p>';
-		wp_editor( $footer_html, 'pd_footer_html_editor', array( 'textarea_name' => 'pd_footer_html', 'textarea_rows' => 10 ) );
+	    $footer_mdx = get_post_meta( $post->ID, 'pd_footer_mdx', true );
+	    echo '<p><strong>' . __( 'Footer MDX Content', 'pd-textdomain' ) . '</strong></p>';
+	    echo '<textarea name="pd_footer_mdx" rows="5" style="width:100%; font-family: monospace;">' . esc_textarea( $footer_mdx ) . '</textarea>';
+	    echo '<p class="description">Paste simple MDX content for the documentation footer.</p>';
 	}
 
 	/**
@@ -573,28 +524,33 @@ class Projects_Documentation_CPT {
 		if ( ! current_user_can( 'edit_post', $post_id ) ) {
 			return $post_id;
 		}
+		$fields_to_delete = array( 'pd_tagline_text', 'pd_overview_text', 'pd_logo_url', 'pd_button_text', 'pd_button_icon', 'pd_button_link', 'pd_dependencies', 'pd_marquee_features' );
+	    foreach ( $fields_to_delete as $field ) {
+	         delete_post_meta( $post_id, $field );
+	    }
 
-		$fields_to_save = array( 'pd_project_title', 'pd_tagline_text', 'pd_overview_text', 'pd_logo_url', 'pd_button_text', 'pd_button_icon', 'pd_button_link' );
+		$fields_to_save = array( 'pd_project_title' );
 		foreach ( $fields_to_save as $field ) {
 			if ( isset( $_POST[ $field ] ) ) {
 				update_post_meta( $post_id, $field, sanitize_text_field( wp_unslash( $_POST[ $field ] ) ) );
 			}
 		}
 
-		if ( isset( $_POST['pd_dependencies'] ) ) {
+		if ( isset( $_POST['pd_show_welcome'] ) ) {
+	        update_post_meta( $post_id, 'pd_show_welcome', '1' );
+	    } else {
+	        update_post_meta( $post_id, 'pd_show_welcome', '0' );
+	    }
+		if ( isset( $_POST['pd_welcome_mdx'] ) ) {
+	        update_post_meta( $post_id, 'pd_welcome_mdx', wp_slash( $_POST['pd_welcome_mdx'] ) );
+	    } else {
+	         delete_post_meta( $post_id, 'pd_welcome_mdx' );
+	    }
+		/*if ( isset( $_POST['pd_dependencies'] ) ) {
             update_post_meta( $post_id, 'pd_dependencies', esc_textarea( wp_unslash( $_POST['pd_dependencies'] ) ) );
-        }
+        }*/
 
-		// Marquee Features (Selct2)
-		if ( isset( $_POST['pd_marquee_features'] ) && is_array( $_POST['pd_marquee_features'] ) ) {
-			$features_array = array_map( 'sanitize_text_field', wp_unslash( $_POST['pd_marquee_features'] ) );
-			$features_array = array_filter( $features_array );
-			
-			update_post_meta( $post_id, 'pd_marquee_features', $features_array );
-
-		} else {
-			delete_post_meta( $post_id, 'pd_marquee_features' );
-		}
+		
 
 
 		if ( isset( $_POST['pd_linked_post_id'] ) ) {
@@ -603,11 +559,11 @@ class Projects_Documentation_CPT {
 			delete_post_meta( $post_id, 'pd_linked_post_id' );
 		}
 
-		// --- SAVE FOOTER FIELD ---
-		if ( isset( $_POST['pd_footer_html'] ) ) {
-			// Using wp_kses_post to allow standard HTML/anchors
-			update_post_meta( $post_id, 'pd_footer_html', wp_kses_post( wp_unslash( $_POST['pd_footer_html'] ) ) );
-		}
+		if ( isset( $_POST['pd_footer_mdx'] ) ) {
+	        update_post_meta( $post_id, 'pd_footer_mdx', wp_slash( $_POST['pd_footer_mdx'] ) );
+	    } else {
+	         delete_post_meta( $post_id, 'pd_footer_mdx' );
+	    }
 
 		// --- SAVE DOCUMENTATION SECTIONS (The Repeater) ---
 		if ( isset( $_POST['pd_doc_sections'] ) && is_array( $_POST['pd_doc_sections'] ) ) {

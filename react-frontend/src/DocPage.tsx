@@ -18,16 +18,19 @@ export interface Section {
 
 export interface DocData {
   project_title: string;
-  tagline_text: string;
-  overview_text: string;
+  // tagline_text: string;
+  // overview_text: string;
   logo_url: string;
-  button_text: string;
-  button_icon: string;
-  button_link: string;
-  dependencies: string;
-  marquee_features: string[];
-  footer_html: string;
+  // button_text: string;
+  // button_icon: string;
+  // button_link: string;
+  // dependencies: string;
+  // marquee_features: string[];
+  // footer_html: string;
   doc_sections: Section[]; 
+  welcome_mdx: string;
+  show_welcome: boolean;
+  footer_mdx: string;
 }
 
 interface TocItem {
@@ -40,6 +43,7 @@ interface DocPageProps {
   title: string;
   mdxContent: string;
   onTocChange: (toc: TocItem[]) => void;
+  isWelcome?: boolean;
 }
 
 const DocPage: React.FC<DocPageProps> = ({ mdxContent, onTocChange }) => {

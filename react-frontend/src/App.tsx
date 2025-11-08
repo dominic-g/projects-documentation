@@ -5,13 +5,14 @@ import { useDebouncedCallback } from '@mantine/hooks';
 import axios from 'axios';
 import { theme } from './theme';
 import { ColorSchemeControl } from './components/ColorSchemeControl/ColorSchemeControl';
-import { Welcome } from './components/Welcome/Welcome';
+// import { Welcome } from './components/Welcome/Welcome';
 import { NotFound404 } from './components/NotFound404/NotFound404';
 import { Logo } from './components/Logo/Logo';
 // import DocPage from './DocPage'; 
 // import DocPage, { DocData, Section } from './DocPage'; 
 // import DocPage, { type DocData, type Section } from './DocPage';
 import DocPage from './DocPage'; 
+import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary';
 import type { DocData, Section } from './DocPage';
 // import { useMantineTheme, type MantineStyleProp } from '@mantine/core';
 // import DominicLogo from '@dominic_n/react-dominic-logo-animation'
@@ -19,15 +20,18 @@ import type { DocData, Section } from './DocPage';
 
 const MOCK_DOC_DATA = {
     project_title: "Mantine Next.js +",
-    tagline_text: "Nextra template",
-    overview_text: "MOCK: This starter Next.js project includes a minimal setup for server side rendering, if you want to learn more on Mantine + Next.js integration follow this guide. To get started edit page.tsx file.",
+    // tagline_text: "Nextra template",
+    // overview_text: "MOCK: This starter Next.js project includes a minimal setup for server side rendering, if you want to learn more on Mantine + Next.js integration follow this guide. To get started edit page.tsx file.",
     logo_url: "",
-    button_text: "Use template v2.3.1 (MOCK)",
-    button_icon: "IconBrandGithub",
-    button_link: "#mock-link",
-    dependencies: "@gfazioli/mantine-marquee: ^2.6.1\n@mantine/core: 8.3.3", // Cleaned for simplicity
-    footer_html: "MOCK: <a href='#'>Footer Link</a>",
-    marquee_features: ["Mantine Marquee", "Mantine Reflection"],
+    welcome_mdx: "# Welcome ",
+    show_welcome: true,
+    footer_mdx: "MOCK: <a href='#'>Footer Link</a>",
+    // button_text: "Use template v2.3.1 (MOCK)",
+    // button_icon: "IconBrandGithub",
+    // button_link: "#mock-link",
+    // dependencies: "@gfazioli/mantine-marquee: ^2.6.1\n@mantine/core: 8.3.3", // Cleaned for simplicity
+    // footer_html: "MOCK: <a href='#'>Footer Link</a>",
+    // marquee_features: ["Mantine Marquee", "Mantine Reflection"],
     doc_sections: [{
         type: "normal",
         title: "Introduction (MOCK)",
@@ -209,17 +213,39 @@ const AppRoot: React.FC = () => {
   const renderMainContent = () => {
       if (!data) return <Center><Text>Loading content...</Text></Center>;
 
-      if (currentSectionSlug === null || currentSectionSlug === undefined) {
-          return <Welcome 
-            titleBase={data.project_title} 
-            tagline={data.tagline_text} 
-            overview={data.overview_text}
-            buttonText={data.button_text}
-            buttonLink={data.button_link}
-            buttonIcon={data.button_icon}
-            dependencies={data.dependencies}
-            marqueeFeatures={data.marquee_features}
+      // if (currentSectionSlug === null || currentSectionSlug === undefined) {
+      //     return <Welcome 
+      //       titleBase={data.project_title} 
+      //       tagline={data.tagline_text} 
+      //       overview={data.overview_text}
+      //       buttonText={data.button_text}
+      //       buttonLink={data.button_link}
+      //       buttonIcon={data.button_icon}
+      //       dependencies={data.dependencies}
+      //       marqueeFeatures={data.marquee_features}
+      //     />;
+      // }
+      if (data.show_welcome && (currentSectionSlug === null || currentSectionSlug === undefined)) {
+          return <DocPage 
+            title={data.project_title} 
+            mdxContent={data.welcome_mdx} 
+            onTocChange={setToc} 
+            isWelcome={true} 
           />;
+      }
+
+      if (!data.show_welcome && (currentSectionSlug === null || currentSectionSlug === undefined)) {
+           const firstSection = data.doc_sections.find((s: Section) => s.type === 'normal');
+           if (firstSection) {
+               const slug = firstSection.title.toLowerCase().replace(/\s+/g, '-');
+               
+               const prettyPath = currentDocBaseUrl + slug;
+               window.history.replaceState({}, '', prettyPath);
+               
+               setCurrentSectionSlug(slug);
+               
+               return <Center><Text>Redirecting...</Text></Center>;
+           }
       }
 
       const currentSection = data.doc_sections.find((s: Section) => 
@@ -612,7 +638,7 @@ const AppRoot: React.FC = () => {
       </AppShell.Main>
       
       <AppShell.Footer p="md" style={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: "nowrap", overflow: "hidden"}}>
-        <div style={{textAlign: 'center'}} dangerouslySetInnerHTML={{ __html: data.footer_html }} />
+        <div style={{textAlign: 'center'}} dangerouslySetInnerHTML={{ __html: data.footer_mdx }} />
       </AppShell.Footer>
     </AppShell>
   );
@@ -620,7 +646,9 @@ const AppRoot: React.FC = () => {
 
 const App: React.FC = () => (
   <MantineProvider theme={theme} defaultColorScheme="auto" >
-    <AppRoot />
+    <ErrorBoundary>
+        <AppRoot />
+    </ErrorBoundary>
   </MantineProvider>
 );
 

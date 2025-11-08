@@ -36,17 +36,25 @@ function pd_get_documentation_data( $object ) {
 	$logo_id = get_post_thumbnail_id( $post_id );
 	$logo_url = $logo_id ? wp_get_attachment_image_url( $logo_id, 'full' ) : '';
 
-	$data = array(
-		'project_title' => get_post_meta( $post_id, 'pd_project_title', true ),
-		'tagline_text'  => get_post_meta( $post_id, 'pd_tagline_text', true ),
-		'overview_text' => get_post_meta( $post_id, 'pd_overview_text', true ),
-		'logo_url'      => $logo_url,
-		'button_text'   => get_post_meta( $post_id, 'pd_button_text', true ),
-		'button_icon'   => get_post_meta( $post_id, 'pd_button_icon', true ),
-		'button_link'   => get_post_meta( $post_id, 'pd_button_link', true ),
-		'dependencies'  => get_post_meta( $post_id, 'pd_dependencies', true ),
-		'footer_html'   => get_post_meta( $post_id, 'pd_footer_html', true ),
-	);
+	// $data = array(
+	// 	'project_title' => get_post_meta( $post_id, 'pd_project_title', true ),
+	// 	'tagline_text'  => get_post_meta( $post_id, 'pd_tagline_text', true ),
+	// 	'overview_text' => get_post_meta( $post_id, 'pd_overview_text', true ),
+	// 	'logo_url'      => $logo_url,
+	// 	'button_text'   => get_post_meta( $post_id, 'pd_button_text', true ),
+	// 	'button_icon'   => get_post_meta( $post_id, 'pd_button_icon', true ),
+	// 	'button_link'   => get_post_meta( $post_id, 'pd_button_link', true ),
+	// 	'dependencies'  => get_post_meta( $post_id, 'pd_dependencies', true ),
+	// 	'footer_html'   => get_post_meta( $post_id, 'pd_footer_html', true ),
+	// );
+    $data = array(
+        'project_title' => get_post_meta( $post_id, 'pd_project_title', true ),
+        'welcome_mdx'   => wp_unslash( get_post_meta( $post_id, 'pd_welcome_mdx', true ) ),
+        'footer_mdx'    => wp_unslash( get_post_meta( $post_id, 'pd_footer_mdx', true ) ),
+        'logo_url'      => $logo_url,
+        'show_welcome'  => get_post_meta( $post_id, 'pd_show_welcome', true ) === '1',
+    );
+    // print_r($data); die();
 
 	$features = get_post_meta( $post_id, 'pd_marquee_features', true );
 	$data['marquee_features'] = is_array( $features ) ? $features : array();

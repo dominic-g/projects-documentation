@@ -37,6 +37,23 @@ const italic = (props: any) => <Text component="span" {...props} fs="italic" />;
 const strike = (props: any) => <Text component="span" {...props} td="line-through" />;
 const anchor = (props: any) => <Anchor {...props} />;
 
+
+// const CardSection: any = Card.Section;
+// const ListItem: any = List.Item;
+
+const getChildrenString = (children: any): string => {
+    if (typeof children === 'string' || typeof children === 'number') {
+        return String(children);
+    }
+    if (Array.isArray(children)) {
+        return children.map(getChildrenString).join('');
+    }
+    if (children && children.props && children.props.children) {
+        return getChildrenString(children.props.children);
+    }
+    return '';
+};
+
 const defaultMantineComponents = {
   code: (props: any) => ( <Code {...props} /> ),
   br: (props: any) => ( <Divider {...props} color="transparent" /> ),
@@ -139,10 +156,18 @@ const defaultMantineComponents = {
   Popover:  (props: any) => <Popover {...props} />,
   Tooltip:  (props: any) => <Tooltip {...props} />,
   Accordion:  (props: any) => <Accordion {...props} />,
+  // 'Accordion.Item': Accordion.Item,
+  // 'Accordion.Control': Accordion.Control,
+  // 'Accordion.Panel': Accordion.Panel,
+  AccordionItem: (props: any) => <Accordion.Item {...props} />,
+  AccordionControl: (props: any) => <Accordion.Control {...props} />,
+  AccordionPanel: (props: any) => <Accordion.Panel {...props} />,
   Avatar:  (props: any) => <Avatar {...props} />,
   BackgroundImage:  (props: any) => <BackgroundImage {...props} />,
   Badge:  (props: any) => <Badge {...props} />,
   Card:  (props: any) => <Card {...props} />,
+  // 'Card.Section': CardSection,
+  'CardSection': (props: any) => <Card.Section {...props} />,  
   ColorSwatch:  (props: any) => <ColorSwatch {...props} />,
   Indicator:  (props: any) => <Indicator {...props} />,
   Kbd:  (props: any) => <Kbd {...props} />,
@@ -153,6 +178,8 @@ const defaultMantineComponents = {
   Blockquote:  (props: any) => <Blockquote {...props} />,
   Highlight:  (props: any) => <Highlight {...props} />,
   List:  (props: any) => <List {...props} />,
+  // 'List.Item': List.Item,
+  ListItem: (props: any) => <List.Item {...props} />,
   Mark:  (props: any) => <Mark {...props} />,
   ScrollArea:  (props: any) => <ScrollArea {...props} />,
   Transition:  (props: any) => <Transition {...props} />,
@@ -171,7 +198,43 @@ const defaultMantineComponents = {
   Sparkline:  (props: any) => <Sparkline {...props} />,
   Heatmap:  (props: any) => <Heatmap {...props} />,
   Marquee:  (props: any) => <Marquee {...props} />,
-  TextAnimate:  (props: any) => <TextAnimate {...props} />,
+  TextAnimate: (props: any) => {
+    const textContent = getChildrenString(props.children); 
+    
+    if (!textContent.trim()) {
+        console.warn("TextAnimate used without content in MDX.");
+        return null; 
+    }
+
+    return (
+        <TextAnimate 
+            {...props} 
+        >
+            {textContent}
+        </TextAnimate>
+    );
+  },
+  // TextAnimate: (props: any) => {
+  //   const safeChildren = String(props.children); 
+  //   console.log(safeChildren);
+
+  //   return (
+  //       <TextAnimate 
+  //           {...props} 
+  //       >
+  //           {safeChildren}
+  //       </TextAnimate>
+  //   );
+  // },
+  // TextAnimate:  (props: any) => <TextAnimate {...props} />,
+  // 'TextAnimate.Typewriter': TextAnimate.Typewriter,
+  // 'TextAnimate.TextTicker': TextAnimate.TextTicker,
+  // 'TextAnimate.NumberTicker': TextAnimate.NumberTicker,
+  // 'TextAnimate.Spinner': TextAnimate.Spinner,
+  TextAnimateTypewriter: (props: any) => <TextAnimate.Typewriter {...props} />,
+  TextAnimateTextTicker: (props: any) => <TextAnimate.TextTicker {...props} />,
+  TextAnimateNumberTicker: (props: any) => <TextAnimate.NumberTicker {...props} />,
+  TextAnimateSpinner: (props: any) => <TextAnimate.Spinner {...props} />,
 
   FileTreeLabel: FileTreeLabel,
 
@@ -179,7 +242,6 @@ const defaultMantineComponents = {
 
 const EXPOSED_ICONS = (() => {
     try {
-        // const iconListJson = require('../../utils/tabler-icons.json');
         const icons: { [key: string]: any } = {};
 
         iconListJson.forEach((name: string) => {
