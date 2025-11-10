@@ -51,6 +51,8 @@ function pd_get_documentation_data( $object ) {
         'project_title' => get_post_meta( $post_id, 'pd_project_title', true ),
         'welcome_mdx'   => wp_unslash( get_post_meta( $post_id, 'pd_welcome_mdx', true ) ),
         'footer_mdx'    => wp_unslash( get_post_meta( $post_id, 'pd_footer_mdx', true ) ),
+        // 'welcome_mdx'   => get_post_meta( $post_id, 'pd_welcome_mdx', true ) ,
+        // 'footer_mdx'    => get_post_meta( $post_id, 'pd_footer_mdx', true ) ,
         'logo_url'      => $logo_url,
         'show_welcome'  => get_post_meta( $post_id, 'pd_show_welcome', true ) === '1',
     );

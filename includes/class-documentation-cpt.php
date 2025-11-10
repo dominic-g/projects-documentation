@@ -108,8 +108,8 @@ class Projects_Documentation_CPT {
 	    $welcome_mdx = get_post_meta( $post->ID, 'pd_welcome_mdx', true );
 	    echo '<p><strong>' . __( 'Welcome Screen MDX Content', 'pd-textdomain' ) . '</strong></p>';
 	    // We use a simple textarea and rely on raw saving below
-	    // echo '<textarea name="pd_welcome_mdx" rows="20" style="width:100%; font-family: monospace;">' . esc_textarea( $welcome_mdx ) . '</textarea>';
-	    echo '<textarea name="pd_welcome_mdx" rows="20" style="width:100%; font-family: monospace;">' . esc_textarea( wp_unslash( $welcome_mdx ) ) . '</textarea>'; 
+	    echo '<textarea name="pd_welcome_mdx" rows="20" style="width:100%; font-family: monospace;">' . esc_textarea( $welcome_mdx ) . '</textarea>';
+	    // echo '<textarea name="pd_welcome_mdx" rows="20" style="width:100%; font-family: monospace;">' . esc_textarea( wp_unslash( $welcome_mdx ) ) . '</textarea>'; 
 	    echo '<p class="description">You can paste any complex Mantine MDX content here (Image, TextAnimate, Buttons, etc.).</p>';
 	}
 
@@ -118,7 +118,8 @@ class Projects_Documentation_CPT {
 
 	    $footer_mdx = get_post_meta( $post->ID, 'pd_footer_mdx', true );
 	    echo '<p><strong>' . __( 'Footer MDX Content', 'pd-textdomain' ) . '</strong></p>';
-	    echo '<textarea name="pd_footer_mdx" rows="5" style="width:100%; font-family: monospace;">' . esc_textarea( wp_unslash($footer_mdx) ) . '</textarea>';
+	    // echo '<textarea name="pd_footer_mdx" rows="5" style="width:100%; font-family: monospace;">' . esc_textarea( wp_unslash($footer_mdx) ) . '</textarea>';
+	    echo '<textarea name="pd_footer_mdx" rows="5" style="width:100%; font-family: monospace;">' . esc_textarea( $footer_mdx ) . '</textarea>';
 	    echo '<p class="description">Paste simple MDX content for the documentation footer.</p>';
 	}
 
@@ -542,7 +543,9 @@ class Projects_Documentation_CPT {
 	        update_post_meta( $post_id, 'pd_show_welcome', '0' );
 	    }
 		if ( isset( $_POST['pd_welcome_mdx'] ) ) {
-	        update_post_meta( $post_id, 'pd_welcome_mdx', wp_slash( $_POST['pd_welcome_mdx'] ) );
+	        // update_post_meta( $post_id, 'pd_welcome_mdx', wp_slash( $_POST['pd_welcome_mdx'] ) );
+	        $content = wp_unslash( $_POST['pd_welcome_mdx'] );
+		    update_post_meta( $post_id, 'pd_welcome_mdx', wp_slash( $content ) );
 	    } else {
 	         delete_post_meta( $post_id, 'pd_welcome_mdx' );
 	    }
@@ -560,12 +563,13 @@ class Projects_Documentation_CPT {
 		}
 
 		if ( isset( $_POST['pd_footer_mdx'] ) ) {
-	        update_post_meta( $post_id, 'pd_footer_mdx', wp_slash( $_POST['pd_footer_mdx'] ) );
+	        // update_post_meta( $post_id, 'pd_footer_mdx', wp_slash( $_POST['pd_footer_mdx'] ) );
+	        $content = wp_unslash( $_POST['pd_footer_mdx'] );
+		    update_post_meta( $post_id, 'pd_footer_mdx', wp_slash( $content ) );
 	    } else {
 	         delete_post_meta( $post_id, 'pd_footer_mdx' );
 	    }
 
-		// --- SAVE DOCUMENTATION SECTIONS (The Repeater) ---
 		if ( isset( $_POST['pd_doc_sections'] ) && is_array( $_POST['pd_doc_sections'] ) ) {
 			$new_sections = array();
 			$sections = wp_unslash( $_POST['pd_doc_sections'] );

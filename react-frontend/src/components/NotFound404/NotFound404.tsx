@@ -1,4 +1,4 @@
-import React, { type FC } from 'react';
+import React, { type FC, useState, useEffect} from 'react';
 import { Box, Anchor } from '@mantine/core';
 import { IconHome } from '@tabler/icons-react';
 import './NotFound404.css';
@@ -21,7 +21,7 @@ for (let i = 1; i <= 47; i++) {
         <Case key={i} num={i} className={`case case_${i}`}>
             <CaseFront />
             <CaseTop />
-            <div className={`case__label case__label_${i % 4 === 1 || i % 4 === 0 ? 'left' : 'right'}`}></div> {/* Simplified label logic */}
+            <div className={`case__label case__label_${i % 4 === 1 || i % 4 === 0 ? 'left' : 'right'}`}></div> 
             <CaseRight />
             <CaseNumber>№2428506</CaseNumber>
         </Case>
@@ -36,11 +36,30 @@ for (let i = 1; i <= 10; i++) {
 }
 
 export const NotFound404: FC<NotFound404Props> = ({ homeUrl }) => {
+    const BASE_WIDTH = 750;
+    const BASE_HEIGHT = 400;
+
+    const [scale, setScale] = useState({ x: 1, y: 1 });
+
+    useEffect(() => {
+        const updateScale = () => {
+          const x = window.innerWidth / BASE_WIDTH;
+          const y = window.innerHeight / BASE_HEIGHT;
+          setScale({ x, y });
+
+          document.documentElement.style.setProperty('--x-scale', x.toString());
+          document.documentElement.style.setProperty('--y-scale', y.toString());
+        };
+
+        updateScale();
+        window.addEventListener('resize', updateScale);
+        return () => window.removeEventListener('resize', updateScale);
+    }, []);
+
     return (
         <Box 
             className="wrapper" 
             style={{ 
-                // Inject critical wrapper styles inline as per HTML/CSS requirement
                 position: 'relative', 
                 width: '100%', 
                 height: '100vh',
@@ -50,7 +69,14 @@ export const NotFound404: FC<NotFound404Props> = ({ homeUrl }) => {
                 alignItems: 'center',
             }}
         >
-            <div className="composition">
+            <Box
+                className="composition"
+                style={{
+                  transform: `scaleX(${scale.x}) scaleY(${scale.y})`,
+                  // transformOrigin: 'top left',
+                }}
+            >
+
                 <div className="layer-0 shelf">
                     <div className="shelf__side_left"></div>
                     <div className="shelf__side_bottom"></div>
@@ -77,7 +103,7 @@ export const NotFound404: FC<NotFound404Props> = ({ homeUrl }) => {
                     <div className="numbers__item numbers__item_2">0</div>
                     <div className="numbers__item numbers__item_3">4</div>
                 </div>
-            </div>
+            </Box>
 
             {/* Home button overlay */}
             <Anchor

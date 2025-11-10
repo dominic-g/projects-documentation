@@ -15,6 +15,7 @@ node_modules
 dist
 dist-ssr
 *.local
+.wp_build_temp
 
 # Editor directories and files
 .vscode/*

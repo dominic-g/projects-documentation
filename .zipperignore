@@ -1,0 +1,6 @@
+react-frontend
+*.zip
+generate_output.php
+output.txt
+package-lock.json
+tree_output.txt

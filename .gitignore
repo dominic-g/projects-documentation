@@ -15,6 +15,9 @@ import-seeder.php
 node_modules
 dist-ssr
 *.local
+.wp_build_temp
+*.zip
+
 
 # Editor directories and files
 .vscode/*
