@@ -16,7 +16,8 @@ class Projects_Documentation_CPT {
 
 		add_action( 'wp_ajax_pd_search_parent_posts', array( $this, 'ajax_search_parent_posts' ) );
 
-
+		//Post Link ti be same as the react
+		add_filter( 'post_type_link', array( $this, 'custom_documentation_permalink' ), 10, 2 );
 	}
 
 	/**
@@ -256,6 +257,37 @@ class Projects_Documentation_CPT {
 		}
 
 		wp_send_json( $results );
+	}
+
+	/**
+	 * Filter the permalink to point to the React viewer page.
+	 * 
+	 * @param string $permalink The current permalink.
+	 * @param WP_Post $post The post object.
+	 * @return string The new or original permalink.
+	 */
+	public function custom_documentation_permalink( $permalink, $post ) {
+		// Only apply to our custom post type
+		if ( $post->post_type !== 'project-doc' ) {
+			return $permalink;
+		}
+
+		// 1. Find the docs-viewer page created on activation
+		$viewer_page = get_page_by_path( 'docs-viewer' );
+
+		if ( $viewer_page ) {
+			// 2. Get the base URL of the viewer page (e.g., http://localhost/wordpress/docs-viewer/)
+			$viewer_url = trailingslashit( get_permalink( $viewer_page->ID ) );
+
+			// 3. Construct the new permalink: /docs-viewer/ID/
+			// This matches the logic you use in the shortcode handler
+			$new_permalink = $viewer_url . $post->ID . '/';
+			
+			return $new_permalink;
+		}
+
+		// Fallback to the original permalink if the viewer page is missing
+		return $permalink;
 	}
 
 	/**
