@@ -88,3 +88,55 @@ function pd_documentation_link_handler( $atts ) {
 function pd_documentation_viewer_handler() {
     return '<div id="root"></div>';
 }
+
+
+/**
+ * Checks if the Projects Documentation plugin is active and if the current
+ * post is linked to a documentation CPT, returning the viewer URL if found.
+ *
+ * @param int $post_id The ID of the post to check against.
+ * @return string|false The documentation viewer URL, or false if not found/plugin inactive.
+ */
+function pd_get_linked_documentation_url( $post_id = 0 ) {
+    // Determine the post ID to check
+    $post_id = absint( $post_id );
+    if ( $post_id === 0 ) {
+        // Fallback to current post if no ID provided and in a standard loop.
+        $post_id = get_the_ID();
+    }
+    
+    if ( $post_id === 0 ) {
+        return false;
+    }
+
+    // Query the 'project-doc' CPT to find one linked to the current $post_id
+    $doc_post_query = new WP_Query( array(
+        'post_type'      => 'project-doc',
+        'post_status'    => 'publish',
+        'posts_per_page' => 1,
+        'meta_key'       => 'pd_linked_post_id',
+        'meta_value'     => $post_id, // Match the current post ID
+        'fields'         => 'ids',    // Only get the ID for efficiency
+        'no_found_rows'  => true,
+    ) );
+
+    $doc_post_id = $doc_post_query->have_posts() ? $doc_post_query->posts[0] : 0;
+    wp_reset_postdata();
+
+    if ( $doc_post_id === 0 ) {
+        return false;
+    }
+
+    $viewer_page = get_page_by_path( 'docs-viewer' ); 
+
+    if ( $viewer_page ) {
+        // Construct the final link URL: /docs-viewer/ID/
+        $viewer_url = trailingslashit( get_permalink( $viewer_page->ID ) );
+        
+        $link_url = $viewer_url . $doc_post_id . '/';
+        
+        return esc_url( $link_url );
+    }
+
+    return false;
+}
