@@ -46,7 +46,7 @@ interface DocPageProps {
   isWelcome?: boolean;
 }
 
-const DocPage: React.FC<DocPageProps> = ({ mdxContent, onTocChange }) => {
+const DocPage: React.FC<DocPageProps> = ({ title, mdxContent, onTocChange }) => {
   const [compiledMdx, setCompiledMdx] = useState<React.ReactElement | null>(null);
   
   const providedComponents = mdxComponentsHook();
@@ -101,32 +101,124 @@ const DocPage: React.FC<DocPageProps> = ({ mdxContent, onTocChange }) => {
 
       } catch (error) {
         if (!isMounted) return;
-        // console.error('MDX run API Failed:', error);
-        // setCompiledMdx(
-        //   <Text color="red">CRITICAL: MDX Run API Failed. Final execution error. Check console.</Text>
-        // );
         
-        const errorMessage = error instanceof Error ? error.message : 'Unknown Parsing Error';
+
+
+
+        const errorObj = error instanceof Error ? error : new Error('Unknown Parsing Error');
+        const errorMessage = errorObj.message;
+        // console.log("Error Outpit : ", error, errorObj);
         
+        let errorLocation: { line: number, column: number } | null = null;
+        const CONTEXT_LINES = 5; // Show 5 lines of context before the error
+
+        let contextLines: string[] = [];
+
+
+        const fullErrorString = String(error);
+        
+        // Regex to specifically find the '54:21:' pattern at the start of the string
+        const match = fullErrorString.match(/^(\d+):(\d+):/);
+        
+        if (match) {
+            errorLocation = {
+                line: parseInt(match[1], 10),
+                column: parseInt(match[2], 10)
+            };
+        }
+
+        // console.log("Error msg matc
+        if (errorLocation) {
+            const mdxLines = mdxContent.split('\n');
+            const errorLineIndex = errorLocation.line - 1; // 0-based index
+            const startLineIndex = Math.max(0, errorLineIndex - CONTEXT_LINES);
+            
+            contextLines = mdxLines.slice(startLineIndex, errorLineIndex + 1);
+        }
+
+
         console.groupCollapsed('🚨 CRITICAL MDX RENDER FAILURE');
         console.error('ERROR MESSAGE:', errorMessage);
+        console.warn('SECTION TITLE:', title);
+        if (errorLocation) {
+            console.warn(`ERROR LOCATION: Line ${errorLocation.line}, Column ${errorLocation.column}`);
+        }
         console.warn('RAW CONTENT (Source of Error):', mdxContent);
-        // Display the specific section's error visually:
+        console.groupEnd();
+        
+        const ErrorContextDisplay = () => {
+            if (!errorLocation || contextLines.length === 0) return null;
+            
+            const errorLineNumber = errorLocation.line;
+            const errorColumn = errorLocation.column;
+            const errorLineContent = contextLines[contextLines.length - 1]; // The last line is the error line
+            const displayStartLine = errorLineNumber - contextLines.length + 1;
+            
+            // --- Highlight the exact character ---
+            const preError = errorLineContent.substring(0, errorColumn - 1);
+            const errorChar = errorLineContent.charAt(errorColumn - 1);
+            const postError = errorLineContent.substring(errorColumn);
+            
+            return (
+                <Mantine.List.Item>
+                    <Mantine.Text fw={700} mb={5}>Approximate Code Location (Line {errorLineNumber}):</Mantine.Text>
+                    <Mantine.Code block style={{ whiteSpace: 'pre-wrap', overflowX: 'auto', padding: 0 }}>
+                        {contextLines.map((lineContent, index) => {
+                            const currentLineNumber = displayStartLine + index;
+                            const lineNumberText = `${currentLineNumber}:`.padStart(4, ' ');
+
+                            if (currentLineNumber === errorLineNumber) {
+                                return (
+                                    <div key={index} style={{ color: 'red', backgroundColor: 'var(--mantine-color-red-9)', padding: '0 8px' }}>
+                                        <Mantine.Text component="span" fw={700} c="var(--mantine-color-red-0)">{lineNumberText} </Mantine.Text>
+                                        <Mantine.Text component="span" c="var(--mantine-color-red-0)" style={{ whiteSpace: 'pre' }}>
+                                            {preError}
+                                            <Mantine.Text component="span" c="var(--mantine-color-red-3)" bg="var(--mantine-color-red-0)">{errorChar}</Mantine.Text>
+                                            {postError}
+                                        </Mantine.Text>
+                                    </div>
+                                );
+                            } else {
+                                return (
+                                    <div key={index} style={{ color: 'var(--mantine-color-code-text)', padding: '0 8px' }}>
+                                        <Mantine.Text component="span" fw={700} c="var(--mantine-color-code-dimmed)">{lineNumberText} </Mantine.Text>
+                                        <Mantine.Text component="span" style={{ whiteSpace: 'pre' }}>{lineContent}</Mantine.Text>
+                                    </div>
+                                );
+                            }
+                        })}
+                    </Mantine.Code>
+                </Mantine.List.Item>
+            );
+        };
+        
+        // 3. Set the final error message
         setCompiledMdx(
             <Mantine.Alert
-                title="MDX Rendering Error"
+                title={`MDX Syntax Error in: ${title}`} 
                 color="red"
                 mt="xl"
             >
-                The documentation could not be rendered due to a syntax issue. 
                 <Mantine.List>
-                    <Mantine.List.Item>Check the WordPress text field for malformed JSX/HTML or misplaced Markdown tables.</Mantine.List.Item>
                     <Mantine.List.Item>Error: **{errorMessage}**</Mantine.List.Item>
+                    <ErrorContextDisplay />
+                    <Mantine.List.Item>
+                       **FOCUS:** The error points to a malformed JSX tag. Check for missing quotes or misplaced slashes near the highlighted position.
+                    </Mantine.List.Item>
                 </Mantine.List>
-                <Mantine.Text fz="xs" mt="sm">Consult console for raw content error tracing.</Mantine.Text>
+                
+                <Mantine.Spoiler 
+                    maxHeight={50} 
+                    showLabel="Show Full Raw MDX Content" 
+                    hideLabel="Hide Full Raw MDX Content"
+                    mt="md"
+                    style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace', fontSize: '12px' }}
+                >
+                    {mdxContent}
+                </Mantine.Spoiler>
             </Mantine.Alert>
         );
-        console.groupEnd();
+
       }
     };
 

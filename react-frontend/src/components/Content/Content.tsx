@@ -23,6 +23,8 @@ type MarqueeItem = {
     icon?: string;
     color?: string;
     bg?: string;
+    variant?: string;
+    gradient?: string;
 };
 
 const validateEnum = (val: any, allowedValues: readonly string[], fallback: string): string => {
@@ -33,6 +35,7 @@ const validateEnum = (val: any, allowedValues: readonly string[], fallback: stri
 
 const MantineSizes: readonly MantineSize[] = ['xs', 'sm', 'md', 'lg', 'xl'] as const;
 const MarqueeTargets = ['_blank', '_self', '_parent', '_top'] as const;
+const MarqueeVariant = ['gradient', 'filled', 'outline', 'light', 'subtle'] as const; 
 const MantineAlignments: readonly AlignType[] = ['left', 'center', 'right'] as const;
 const TextAnimateAnimate = ['in', 'out', 'in-out'] as const;
 const TextAnimateBy = ['character', 'word', 'line'] as const;
@@ -58,7 +61,7 @@ const useJsonProps = <T extends any>(dataString: string | undefined): T[] => {
 
 // ========================================================
 // 1. Marquee Features Component
-// Usage in MDX: <MarqueeFeatures title="Title" data='[{ "text": "Feature", "size": "xl" }]'/>
+// Usage in MDX: <MarqueeFeatures title="Title" data='[{ "text": "Feature", "size": "xl", "variant": "gradient", "gradient": "red,pink"  }]'/>
 // ========================================================
 interface MarqueeFeaturesProps {
     title?: string;
@@ -82,9 +85,43 @@ export const MarqueeFeatures = ({ title, data }: MarqueeFeaturesProps) => {
               if (!item.text) return null;
               
               const safeSize = validateEnum(item.size, MantineSizes, 'lg') as MantineSize;
+              // const itemVariant = validateEnum(item.variant, MarqueeVariant, 'filled');
+              const itemVariant = validateEnum(item.variant, MarqueeVariant as unknown as string[], 'filled');
               const IconComp = getIconComponent(item.icon || '');
               
               const ButtonIcon = IconComp ? <IconComp size={safeSize === 'xs' ? 14 : 18} /> : undefined;
+
+              // GRADIENT / STYLE LOGIC
+              let buttonGradient = undefined;
+              let buttonStyle = {};
+              
+              if (itemVariant === 'gradient' && item.gradient) {
+                  const parts = item.gradient.split(',');
+                  // Simple logic for [from, to, deg]
+                  buttonGradient = {
+                      from: parts[0] || 'indigo',
+                      to: parts[1] || parts[0] || 'cyan',
+                      deg: parseInt(parts[2] || '90', 10),
+                  };
+              
+              } else {
+                  // If not gradient, use explicit styles for custom colors
+                  buttonStyle = {
+                    backgroundColor: item.bg || undefined, 
+                    color: item.color || undefined,
+                  };
+              }
+              
+              // Apply common styles regardless of variant
+              buttonStyle = {
+                  ...buttonStyle,
+                  // color: item.color || undefined,
+                  pointerEvents: item.href && item.href !== '#' ? 'auto' : 'none',
+                  marginLeft: theme.spacing.xs,
+                  marginRight: theme.spacing.xs,
+              };
+
+              // const mantineColorProp = itemVariant === 'gradient' ? undefined : item.color; 
 
               return (
                 <Button
@@ -94,16 +131,14 @@ export const MarqueeFeatures = ({ title, data }: MarqueeFeaturesProps) => {
                   href={item.href || '#'}
                   target={validateEnum(item.target, MarqueeTargets as unknown as string[], '_blank')}
                   leftSection={ButtonIcon}
-                  variant="filled" // Ensure background color is honored
+                  //variant="filled"
+                  variant={itemVariant}
+
+                  gradient={buttonGradient}
+                  // color={mantineColorProp}
+                  color={item.color} 
                   
-                  // Style logic for color overrides (simple Mantine default fallback)
-                  style={{
-                    backgroundColor: item.bg || undefined, 
-                    color: item.color || undefined,
-                    pointerEvents: item.href && item.href !== '#' ? 'auto' : 'none', // Set to none if link is missing
-                    marginLeft: theme.spacing.xs,
-                    marginRight: theme.spacing.xs,
-                  }}
+                  style={buttonStyle}
 
                 >
                   {item.text}

@@ -31,6 +31,7 @@ import{
 import { FileTreeLabel } from './components/FileTreeLabel/FileTreeLabel';
 // import DominicLogo from '@dominic_n/react-dominic-logo-animation';
 //Total 65 imported comp
+import { MarqueeFeatures } from './components/Content/Content'; 
 // import { MarqueeFeatures, TypewriterComponent, AnimatedTextComponent, ActionButton } from './components/Content/Content'; 
 
 const bold = (props: any) => <Text component="span" {...props} fw="900" />;
@@ -200,6 +201,8 @@ const defaultMantineComponents = {
   Sparkline:  (props: any) => <Sparkline {...props} />,
   Heatmap:  (props: any) => <Heatmap {...props} />,
   Marquee:  (props: any) => <Marquee {...props} />,
+  // MarqueeFeatures:  (props: any) => <MarqueeFeatures {...props} />,
+  MarqueeFeatures:  MarqueeFeatures,
   TextAnimate: (props: any) => {
     const textContent = getChildrenString(props.children); 
 
