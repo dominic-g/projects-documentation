@@ -31,8 +31,9 @@ import{
 import { FileTreeLabel } from './components/FileTreeLabel/FileTreeLabel';
 // import DominicLogo from '@dominic_n/react-dominic-logo-animation';
 //Total 65 imported comp
-import { MarqueeFeatures } from './components/Content/Content'; 
+import { MarqueeFeatures, ActionButton } from './components/Content/Content'; 
 // import { MarqueeFeatures, TypewriterComponent, AnimatedTextComponent, ActionButton } from './components/Content/Content'; 
+import { StyleInjector } from './components/StyleInjector/StyleInjector';
 
 const bold = (props: any) => <Text component="span" {...props} fw="900" />;
 const italic = (props: any) => <Text component="span" {...props} fs="italic" />;
@@ -179,6 +180,7 @@ const defaultMantineComponents = {
   Spoiler:  (props: any) => <Spoiler {...props} />,
   ThemeIcon:  (props: any) => <ThemeIcon {...props} />,
   Timeline:  (props: any) => <Timeline {...props} />,
+  TimelineItem:  (props: any) => <Timeline.Item {...props} />,
   Blockquote:  (props: any) => <Blockquote {...props} />,
   Highlight:  (props: any) => <Highlight {...props} />,
   List:  (props: any) => <List {...props} />,
@@ -203,6 +205,7 @@ const defaultMantineComponents = {
   Marquee:  (props: any) => <Marquee {...props} />,
   // MarqueeFeatures:  (props: any) => <MarqueeFeatures {...props} />,
   MarqueeFeatures:  MarqueeFeatures,
+  ActionButton: ActionButton,
   TextAnimate: (props: any) => {
     const textContent = getChildrenString(props.children); 
 
@@ -225,6 +228,10 @@ const defaultMantineComponents = {
   TextAnimateSpinner: (props: any) => <TextAnimate.Spinner {...props} />,
 
   FileTreeLabel: FileTreeLabel,
+
+  
+  Style: (props: any) => <StyleInjector {...props} />, 
+  CSSBlock: (props: any) => <StyleInjector {...props} />,
   // dominiclogo: (props: any) => <DominicLogo {...props} />,
   // DominicLogo: DominicLogo,
   // DominicLogo: (props: any) => {

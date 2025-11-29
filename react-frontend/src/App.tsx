@@ -15,7 +15,7 @@ import DocPage from './DocPage';
 import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary';
 import type { DocData, Section } from './DocPage';
 // import { useMantineTheme, type MantineStyleProp } from '@mantine/core';
-// import DominicLogo from '@dominic_n/react-dominic-logo-animation'
+import DominicLogo from '@dominic_n/react-dominic-logo-animation'
 
 
 const MOCK_DOC_DATA = {
@@ -612,7 +612,20 @@ const AppRoot: React.FC = () => {
       
       <AppShell.Footer p="md" style={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: "nowrap", overflow: "hidden"}}>
         <div style={{textAlign: 'center'}} dangerouslySetInnerHTML={{ __html: data.footer_mdx }} />
-        {/*<DominicLogo/>*/}
+        
+        <NavLink 
+                component="a" 
+                href="https://dominicn.dev/"
+                target="_blank"
+                label={
+                    <DominicLogo />
+                }
+                p={4}
+                c="blue.4"
+                fw={600}
+                style={{ width: '180px', maxWidth: '75%'}}
+                color='green.6'
+            />
       </AppShell.Footer>
     </AppShell>
   );
