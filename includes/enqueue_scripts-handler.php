@@ -70,6 +70,49 @@ function pd_enqueue_frontend_app() {
 }
 
 
+/**
+ * Dequeues all scripts and styles except those explicitly needed for the React app.
+ * This ensures a conflict-free, isolated environment for the SPA.
+ */
+function pd_dequeue_all_but_ours() {
+    // Only run this extreme cleanup on the docs-viewer page
+    if ( ! is_page( 'docs-viewer' ) ) {
+        return;
+    }
+
+    global $wp_styles, $wp_scripts;
+    
+    // all handles that MUST NOT be dequeued
+    $keep_styles = array( 
+        'pd-doc-styles',
+    );
+    $keep_scripts = array( 
+        'pd-doc-app_bundle', 
+        'jquery',            
+        'react',             
+        'wp-element',        
+        'wp-polyfill'        
+    );
+
+    // Dequeue Styles
+    foreach ( $wp_styles->queue as $handle ) {
+        if ( ! in_array( $handle, $keep_styles ) ) {
+            wp_dequeue_style( $handle );
+        }
+    }
+
+    // Dequeue Scripts
+    foreach ( $wp_scripts->queue as $handle ) {
+        if ( ! in_array( $handle, $keep_scripts ) ) {
+            wp_dequeue_script( $handle );
+        }
+    }
+}
+
+// uses high priority (9999) to run AFTER all other enqueues
+add_action( 'wp_enqueue_scripts', 'pd_dequeue_all_but_ours', 9999 );
+
+
 
 function set_documentation_template( $template ) {
     global $post;
