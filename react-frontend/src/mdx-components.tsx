@@ -34,6 +34,7 @@ import { FileTreeLabel } from './components/FileTreeLabel/FileTreeLabel';
 import { MarqueeFeatures, ActionButton } from './components/Content/Content'; 
 // import { MarqueeFeatures, TypewriterComponent, AnimatedTextComponent, ActionButton } from './components/Content/Content'; 
 import { StyleInjector } from './components/StyleInjector/StyleInjector';
+import { InViewAnimationWrapper } from './components/InViewAnimationWrapper/InViewAnimationWrapper'; 
 
 const bold = (props: any) => <Text component="span" {...props} fw="900" />;
 const italic = (props: any) => <Text component="span" {...props} fs="italic" />;
@@ -207,6 +208,7 @@ const defaultMantineComponents = {
   // MarqueeFeatures:  (props: any) => <MarqueeFeatures {...props} />,
   MarqueeFeatures:  MarqueeFeatures,
   ActionButton: ActionButton,
+  InViewAnimationWrapper: InViewAnimationWrapper,
   TextAnimate: (props: any) => {
     const textContent = getChildrenString(props.children); 
 
