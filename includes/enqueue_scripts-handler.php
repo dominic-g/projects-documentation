@@ -49,13 +49,13 @@ function pd_enqueue_frontend_app() {
 
                     const checkAndMount = () => {
                         if (window.ProjectDocumentationApp && typeof window.ProjectDocumentationApp.renderApp === 'function') {
-                            console.log('🟢 ProjectDocumentationApp found. Mounting app.');
+                            // console.log('🟢 ProjectDocumentationApp found. Mounting app.');
                             window.ProjectDocumentationApp.renderApp(rootElement, config);
                             clearInterval(mountInterval);
                             return;
                         }
                         if (++attempts >= 100) { 
-                            console.error('🔴 Final Mounting Error: ProjectDocumentationApp never attached to window.');
+                            // console.error('🔴 Final Mounting Error: ProjectDocumentationApp never attached to window.');
                             clearInterval(mountInterval);
                         }
                     };
@@ -85,6 +85,7 @@ function pd_dequeue_all_but_ours() {
     // all handles that MUST NOT be dequeued
     $keep_styles = array( 
         'pd-doc-styles',
+        'admin-bar',
     );
     $keep_scripts = array( 
         'pd-doc-app_bundle', 
