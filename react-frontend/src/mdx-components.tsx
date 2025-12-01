@@ -99,6 +99,7 @@ const defaultMantineComponents = {
           <Carousel loop withIndicators {...props} /> 
       </Box>
   ),
+  CarouselSlide: (props: any) => <Carousel.Slide {...props} />,
   table: (props: any) => {
     return (
         <Box 
@@ -172,7 +173,7 @@ const defaultMantineComponents = {
   BackgroundImage:  (props: any) => <BackgroundImage {...props} />,
   Badge:  (props: any) => <Badge {...props} />,
   Card:  (props: any) => <Card {...props} />,
-  'CardSection': (props: any) => <Card.Section {...props} />,  
+  CardSection: (props: any) => <Card.Section {...props} />,  
   ColorSwatch:  (props: any) => <ColorSwatch {...props} />,
   Indicator:  (props: any) => <Indicator {...props} />,
   Kbd:  (props: any) => <Kbd {...props} />,
